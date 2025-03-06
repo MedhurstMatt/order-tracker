@@ -214,6 +214,9 @@
       const employee = row.querySelector('.employee').innerText;
       const timestamp = row.querySelector('.timestamp').innerText;
 
+      // Store original notes to enforce that they aren't removed.
+      row.dataset.originalNotes = notes;
+
       // For Customer Name, create a container with the input and an Unlock Code field.
       row.querySelector('.customer').innerHTML = `
         <div>
@@ -244,25 +247,22 @@
       // Timestamp remains uneditable
       row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
 
-      // Add event listener to the Request Type drop-down to show/hide the Unlock Code input
+      // Get elements for Customer Name and Unlock Code
       const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const unlockInput = document.getElementById(`unlockCode_${recordId}`);
 
-      // When the request type changes, check if we need to unlock the Customer Name field.
+      // When the request type changes, show/hide the Unlock Code input if needed.
       requestSelect.addEventListener('change', function() {
-        if (requestSelect.value === "Awaiting Order") {
+        if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order") {
           unlockInput.style.display = 'block';
-          unlockInput.placeholder = "Enter code for Awaiting Order";
-          customerInput.disabled = true;
-        } else if (requestSelect.value === "On Order") {
-          unlockInput.style.display = 'block';
-          unlockInput.placeholder = "Enter code for On Order";
+          unlockInput.placeholder = requestSelect.value === "Awaiting Order" ? "Enter code for Awaiting Order" : "Enter code for On Order";
           customerInput.disabled = true;
         } else {
           unlockInput.style.display = 'none';
           unlockInput.value = "";
-          customerInput.disabled = true; // remains locked
+          // For other request types, Customer Name remains locked.
+          customerInput.disabled = true;
         }
       });
 
@@ -293,17 +293,32 @@
     // Save the edited row using a PUT request
     function saveRow(button, recordId) {
       const row = button.closest('tr');
+
       // Get updated values
       const updatedNotes = row.querySelector('.notes textarea').value;
+      const originalNotes = row.dataset.originalNotes || "";
+      // Ensure the updated notes still start with the original text.
+      if (!updatedNotes.startsWith(originalNotes)) {
+        alert("You cannot delete the original notes. Please keep the original text and add any additions after it.");
+        return;
+      }
+      
       const updatedRequestType = row.querySelector('.requestType select').value;
       const updatedEmployee = row.querySelector('.employee select').value;
       const customerInput = document.getElementById(`customerInput_${recordId}`);
-      const updatedCustomer = customerInput.value;  // May be unchanged if not unlocked
+      const updatedCustomer = customerInput.value;
+
+      // For Awaiting Order or On Order, ensure the unlock code was correctly entered.
+      if ((updatedRequestType === "Awaiting Order" && document.getElementById(`unlockCode_${recordId}`).value !== "216521") ||
+          (updatedRequestType === "On Order" && document.getElementById(`unlockCode_${recordId}`).value !== "191221")) {
+        alert("Correct unlock code is required to update the Customer Name for this Request Type.");
+        return;
+      }
 
       // Prepare updated data. Note that the invoice number is not changed.
       const updatedData = {
         sheet1: {
-          // title (Customer Name) is updated only if unlocked.
+          // Customer Name is updated only if unlocked.
           title: updatedCustomer,
           notes: updatedNotes,
           status: updatedRequestType,
