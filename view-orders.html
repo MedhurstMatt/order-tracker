@@ -8,9 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     /* Reset and base styles */
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Roboto', sans-serif;
@@ -29,6 +27,24 @@
       font-weight: 500;
       letter-spacing: 1px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    /* Navigation link in header */
+    .header a {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #fff;
+      text-decoration: none;
+      font-size: 1rem;
+      background: #FF8C00;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+    }
+    .header a:hover {
+      background: #e07a00;
     }
     .container {
       background: #fff;
@@ -62,9 +78,7 @@
       outline: none;
       transition: border-color 0.3s ease;
     }
-    .filter-container select:focus {
-      border-color: #FF8C00;
-    }
+    .filter-container select:focus { border-color: #FF8C00; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -77,27 +91,11 @@
       font-size: 0.9rem;
       vertical-align: top;
     }
-    th {
-      background: #222;
-      color: #fff;
-    }
-    tr:nth-child(even) {
-      background: #f9f9f9;
-    }
-    tr:hover {
-      background: #f1f1f1;
-    }
-    /* Ensure newlines are rendered and notes are separated */
-    .notes-display {
-      white-space: pre-wrap;
-      font-family: 'Roboto', sans-serif;
-      font-size: 0.9rem;
-    }
-    hr {
-      border: 0;
-      border-top: 1px solid #ccc;
-      margin: 8px 0;
-    }
+    th { background: #222; color: #fff; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    tr:hover { background: #f1f1f1; }
+    .notes-display { white-space: pre-wrap; font-family: 'Roboto', sans-serif; font-size: 0.9rem; }
+    hr { border: 0; border-top: 1px solid #ccc; margin: 8px 0; }
     button {
       padding: 8px 14px;
       border: none;
@@ -107,27 +105,12 @@
       transition: background 0.3s ease;
       margin: 2px;
     }
-    .edit-btn {
-      background: #007BFF;
-      color: #fff;
-    }
-    .edit-btn:hover {
-      background: #0056b3;
-    }
-    .save-btn {
-      background: #28a745;
-      color: #fff;
-    }
-    .save-btn:hover {
-      background: #1e7e34;
-    }
-    .cancel-btn {
-      background: #dc3545;
-      color: #fff;
-    }
-    .cancel-btn:hover {
-      background: #c82333;
-    }
+    .edit-btn { background: #007BFF; color: #fff; }
+    .edit-btn:hover { background: #0056b3; }
+    .save-btn { background: #28a745; color: #fff; }
+    .save-btn:hover { background: #1e7e34; }
+    .cancel-btn { background: #dc3545; color: #fff; }
+    .cancel-btn:hover { background: #c82333; }
     .footer {
       background: #222;
       color: #fff;
@@ -137,18 +120,16 @@
       margin-top: auto;
     }
     /* Specific elements */
-    .unlock-code, .new-comment, .editor-select {
-      margin-top: 6px;
-      font-size: 0.9rem;
-    }
+    .unlock-code, .new-comment, .editor-select { margin-top: 6px; font-size: 0.9rem; }
     /* Smooth transitions */
-    .container, input, textarea, select, button {
-      transition: all 0.3s ease;
-    }
+    .container, input, textarea, select, button { transition: all 0.3s ease; }
   </style>
 </head>
 <body>
-  <div class="header">Medhurst Kitchen Equipment</div>
+  <div class="header">
+    Medhurst Kitchen Equipment
+    <a href="https://medhurstmatt.github.io/order-tracker/" target="_blank">Medhurst Request Form</a>
+  </div>
   <div class="container">
     <h2>Manage Medhurst Requests</h2>
     
@@ -165,7 +146,7 @@
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Base API URL (using internal ID for API calls, not shown)
+    // Base API URL (internal ID is used for API calls, not displayed)
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
     // Options for Request Type and Employee
@@ -201,7 +182,7 @@
 
     let allRecords = [];
 
-    // Function to format a timestamp into Australian style (DD/MM/YYYY hh:mm AM/PM)
+    // Helper to format timestamp in Australian style (DD/MM/YYYY hh:mm AM/PM)
     function formatTimestamp(timestamp) {
       const dateObj = new Date(timestamp);
       const day = ("0" + dateObj.getDate()).slice(-2);
@@ -211,11 +192,11 @@
       const minutes = ("0" + dateObj.getMinutes()).slice(-2);
       const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12;
-      hours = hours ? hours : 12; // hour '0' should be '12'
+      hours = hours ? hours : 12;
       return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
     }
 
-    // Formats the notes into separated sections.
+    // Format notes: split on separator and join with horizontal rules.
     function formatNotes(notes) {
       const parts = notes.split("\n\n-----\n");
       return parts.map(part => `<div>${part.trim()}</div>`).join("<hr>");
@@ -254,7 +235,7 @@
         });
     }
 
-    // Render table with filtered records. Format timestamp.
+    // Render table with filtered records.
     function renderTable(records) {
       const filterValue = document.getElementById('filterSelect').value;
       let filteredRecords = (filterValue === "All") ? records : records.filter(record => record.status === filterValue);
@@ -312,7 +293,6 @@
       });
       editorHTML += `</select>`;
 
-      // Build editable Customer field with unlock code.
       row.querySelector('.customer').innerHTML = `
         <div>
           <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
@@ -320,33 +300,28 @@
           <br/>${editorHTML}
         </div>
       `;
-      // Display original notes and add New Comment area.
       row.querySelector('.notes').innerHTML = `
         <div>
           <div class="notes-display">${formatNotes(notes)}</div>
           <textarea rows="2" placeholder="Add new comment (cannot delete original)..." id="newComment_${recordId}" class="new-comment" disabled></textarea>
         </div>
       `;
-      // Editable Request Type drop-down.
       let requestTypeSelect = `<select id="requestTypeSelect_${recordId}" disabled>`;
       requestTypeOptions.forEach(opt => {
         requestTypeSelect += `<option value="${opt}" ${opt === requestType ? 'selected' : ''}>${opt}</option>`;
       });
       requestTypeSelect += `</select>`;
       row.querySelector('.requestType').innerHTML = requestTypeSelect;
-      // Employee field: display as disabled text (original staff cannot be changed).
+      // Employee field remains locked.
       row.querySelector('.employee').innerHTML = `<input type="text" value="${employee}" disabled />`;
-      // Timestamp remains read-only.
       row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
 
-      // Get references.
       const editorSelect = document.getElementById(`editorSelect_${recordId}`);
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const unlockInput = document.getElementById(`unlockCode_${recordId}`);
       const newCommentArea = document.getElementById(`newComment_${recordId}`);
       const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
 
-      // When an editor is chosen, enable the other fields.
       editorSelect.addEventListener('change', function() {
         if (editorSelect.value !== "") {
           newCommentArea.disabled = false;
@@ -371,7 +346,6 @@
         }
       });
 
-      // When the request type changes, update unlock code field.
       requestSelect.addEventListener('change', function() {
         if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order" || requestSelect.value === "Moved to Delivery") {
           unlockInput.style.display = 'block';
@@ -390,7 +364,6 @@
         }
       });
 
-      // Unlock the Customer field when correct code is entered.
       unlockInput.addEventListener('input', function() {
         if (requestSelect.value === "Awaiting Order" && unlockInput.value === "216521") {
           customerInput.disabled = false;
@@ -424,7 +397,6 @@
         updatedNotes += `\n\n--------------------------------------------------\nComment added on ${now.toLocaleString()}:\n${newComment}`;
       }
       const updatedRequestType = document.getElementById(`requestTypeSelect_${recordId}`).value;
-      // Employee remains unchanged (locked) so we retrieve it from the disabled input.
       const updatedEmployee = row.querySelector('.employee input').value;
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const updatedCustomer = customerInput.value;
