@@ -96,6 +96,11 @@
       font-size: 14px;
       margin-top: auto;
     }
+    /* Style for the unlock code input */
+    .unlock-code {
+      display: none;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -110,14 +115,17 @@
     // Base API URL
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
-    // Drop-down options for Request Type and Employee
+    // Updated drop-down options for Request Type and Employee
     const requestTypeOptions = [
       "To Be Ordered",
       "Awaiting Order",
       "On Order",
+      "Parked",
       "Store Pick Up",
       "Warehouse Pick Up",
       "Delivery Request",
+      "Moved to Delivery",
+      "Paul Delivery",
       "Freight Forward",
       "Completed",
       "Canceled"
@@ -145,7 +153,7 @@
         .then(response => response.json())
         .then(json => {
           console.log("Fetched JSON:", json);
-          // Check for either sheet1S or sheet1 property
+          // Use json.sheet1S or json.sheet1 (whichever is available)
           const records = json.sheet1S || json.sheet1;
           if (!records) {
             throw new Error("No records found in the response.");
@@ -172,7 +180,7 @@
       html += '</tr></thead>';
       html += '<tbody>';
       records.forEach(record => {
-        // If status is Completed or Canceled, do not show edit button.
+        // Do not allow editing if status is Completed or Canceled
         const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
         html += `<tr data-record-id="${record.id}">
           <td class="invoice">${record.id}</td>
@@ -206,14 +214,19 @@
       const employee = row.querySelector('.employee').innerText;
       const timestamp = row.querySelector('.timestamp').innerText;
 
-      // Replace cells with input fields
-      // Invoice Number and Customer Name remain uneditable.
-      row.querySelector('.invoice').innerHTML = `<input type="text" value="${invoice}" disabled />`;
-      row.querySelector('.customer').innerHTML = `<input type="text" value="${customer}" disabled />`;
+      // For Customer Name, create a container with the input and an Unlock Code field.
+      row.querySelector('.customer').innerHTML = `
+        <div>
+          <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
+          <br/><input type="text" placeholder="Unlock Code" id="unlockCode_${recordId}" class="unlock-code" />
+        </div>
+      `;
+
+      // Notes field becomes a textarea
       row.querySelector('.notes').innerHTML = `<textarea rows="2">${notes}</textarea>`;
 
-      // Create drop-down for Request Type
-      let requestTypeSelect = `<select>`;
+      // Create drop-down for Request Type using updated options
+      let requestTypeSelect = `<select id="requestTypeSelect_${recordId}">`;
       requestTypeOptions.forEach(opt => {
         requestTypeSelect += `<option value="${opt}" ${opt === requestType ? 'selected' : ''}>${opt}</option>`;
       });
@@ -231,6 +244,39 @@
       // Timestamp remains uneditable
       row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
 
+      // Add event listener to the Request Type drop-down to show/hide the Unlock Code input
+      const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
+      const customerInput = document.getElementById(`customerInput_${recordId}`);
+      const unlockInput = document.getElementById(`unlockCode_${recordId}`);
+
+      // When the request type changes, check if we need to unlock the Customer Name field.
+      requestSelect.addEventListener('change', function() {
+        if (requestSelect.value === "Awaiting Order") {
+          unlockInput.style.display = 'block';
+          unlockInput.placeholder = "Enter code for Awaiting Order";
+          customerInput.disabled = true;
+        } else if (requestSelect.value === "On Order") {
+          unlockInput.style.display = 'block';
+          unlockInput.placeholder = "Enter code for On Order";
+          customerInput.disabled = true;
+        } else {
+          unlockInput.style.display = 'none';
+          unlockInput.value = "";
+          customerInput.disabled = true; // remains locked
+        }
+      });
+
+      // Add event listener to the Unlock Code input to unlock Customer Name if the correct code is entered.
+      unlockInput.addEventListener('input', function() {
+        if (requestSelect.value === "Awaiting Order" && unlockInput.value === "216521") {
+          customerInput.disabled = false;
+        } else if (requestSelect.value === "On Order" && unlockInput.value === "191221") {
+          customerInput.disabled = false;
+        } else {
+          customerInput.disabled = true;
+        }
+      });
+
       // Replace actions with Save and Cancel buttons
       const actionsCell = row.querySelector('td:last-child');
       actionsCell.innerHTML = `
@@ -247,15 +293,18 @@
     // Save the edited row using a PUT request
     function saveRow(button, recordId) {
       const row = button.closest('tr');
-      // Note: Invoice Number and Customer Name are not editable.
+      // Get updated values
       const updatedNotes = row.querySelector('.notes textarea').value;
       const updatedRequestType = row.querySelector('.requestType select').value;
       const updatedEmployee = row.querySelector('.employee select').value;
+      const customerInput = document.getElementById(`customerInput_${recordId}`);
+      const updatedCustomer = customerInput.value;  // May be unchanged if not unlocked
 
-      // Prepare updated data. Invoice Number and Customer Name remain unchanged.
+      // Prepare updated data. Note that the invoice number is not changed.
       const updatedData = {
         sheet1: {
-          // title remains unchanged.
+          // title (Customer Name) is updated only if unlocked.
+          title: updatedCustomer,
           notes: updatedNotes,
           status: updatedRequestType,
           employee: updatedEmployee,
