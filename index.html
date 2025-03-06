@@ -1,42 +1,239 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Form Entry Recorder</title>
+  <title>Medhurst Kitchen Equipment - Request Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts for modern typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset and base styles */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #FF8C00, #FFA500);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .header {
+      background: #222;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    /* Unobtrusive navigation link in top-right */
+    .header a.nav-link {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      background: rgba(255, 140, 0, 0.8);
+      padding: 6px 10px;
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+    .header a.nav-link:hover { background: rgba(224, 122, 0, 0.9); }
+    .container {
+      background: #fff;
+      width: 95%;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.75rem;
+      color: #222;
+    }
+    label {
+      display: block;
+      margin: 10px 0 4px;
+      font-weight: 500;
+    }
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border 0.3s ease;
+    }
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #FF8C00;
+      outline: none;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    /* Button container for mobile-friendly spacing */
+    .button-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+    input[type="submit"] {
+      background: #222;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    input[type="submit"]:hover { background: #444; }
+    .footer {
+      background: #222;
+      color: #fff;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 0.85rem;
+      margin-top: auto;
+    }
+    /* Passcode container styling */
+    #passcodeContainer {
+      display: none;
+      margin-bottom: 12px;
+    }
+    #passcodeContainer input {
+      border-color: #FF8C00;
+    }
+  </style>
 </head>
 <body>
-  <h1>Submit Your Entry</h1>
-  <form id="entryForm">
-    <label for="name">Name:</label>
-    <input type="text" id="name" name="name" required>
-    <br>
-    <label for="message">Message:</label>
-    <input type="text" id="message" name="message" required>
-    <br>
-    <button type="submit">Submit</button>
-  </form>
+  <div class="header">
+    Medhurst Kitchen Equipment
+    <!-- Link to Manage Requests page -->
+    <a href="https://medhurstmatt.github.io/order-tracker/view-orders.html" class="nav-link" target="_blank">Manage Requests</a>
+  </div>
+  <div class="container">
+    <h2>Medhurst Request Form</h2>
+    <!-- 
+      Staticman form integration.
+      Replace <GITHUB_USERNAME>, <REPO>, <BRANCH>, and <PATH> accordingly.
+      In this example:
+      - GitHub Username: medhurstmatt
+      - Repository: order-tracker
+      - Branch: main
+      - Submissions stored in: data/submissions
+    -->
+    <form id="requestForm" action="https://api.staticman.net/v2/entry/medhurstmatt/order-tracker/main/data/submissions" method="POST">
+      
+      <!-- Required hidden fields for Staticman -->
+      <input type="hidden" name="options[redirect]" value="https://medhurstmatt.github.io/order-tracker/thank-you.html">
+      <input type="hidden" name="options[slug]" value="order-{{timestamp}}">
+      
+      <!-- Customer Name and Invoice -->
+      <label for="title">Customer Name and Invoice</label>
+      <input type="text" id="title" name="fields[title]" placeholder="Enter customer name and invoice" required>
+      
+      <!-- Passcode container (hidden by default) -->
+      <div id="passcodeContainer">
+        <label for="passcode">Passcode</label>
+        <input type="text" id="passcode" name="fields[passcode]" placeholder="Enter passcode">
+      </div>
+      
+      <!-- Request Type positioned above Notes -->
+      <label for="status">Request Type</label>
+      <select id="status" name="fields[status]" required>
+        <option value="To Be Ordered">To Be Ordered</option>
+        <option value="Awaiting Order">Awaiting Order</option>
+        <option value="On Order">On Order</option>
+        <option value="Parked">Parked</option>
+        <option value="Store Pick Up">Store Pick Up</option>
+        <option value="Warehouse Pick Up">Warehouse Pick Up</option>
+        <option value="Delivery Request">Delivery Request</option>
+        <option value="Moved to Delivery">Moved to Delivery</option>
+        <option value="Paul Delivery">Paul Delivery</option>
+        <option value="Freight Forward">Freight Forward</option>
+        <option value="Completed">Completed</option>
+        <option value="Canceled">Canceled</option>
+      </select>
+      
+      <!-- Notes placed after Request Type -->
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="fields[notes]" placeholder="Enter notes here..." required></textarea>
+      
+      <!-- Employee -->
+      <label for="employee">Employee</label>
+      <select id="employee" name="fields[employee]" required>
+        <option value="">Select Employee</option>
+        <option value="Allan Bakker">Allan Bakker</option>
+        <option value="Anne McShane">Anne McShane</option>
+        <option value="Cathy Mayne">Cathy Mayne</option>
+        <option value="Colin Chung">Colin Chung</option>
+        <option value="Elaine Killalea">Elaine Killalea</option>
+        <option value="Fergus McShane">Fergus McShane</option>
+        <option value="Garry Williams">Garry Williams</option>
+        <option value="Hamish Killalea">Hamish Killalea</option>
+        <option value="Matthew Tonks">Matthew Tonks</option>
+        <option value="Matthew Tracey">Matthew Tracey</option>
+        <option value="Paul Tickner">Paul Tickner</option>
+        <option value="Richard Medhurst">Richard Medhurst</option>
+        <option value="Toby McShane">Toby McShane</option>
+      </select>
+      
+      <!-- Button container for mobile-friendly submit -->
+      <div class="button-container">
+        <input type="submit" value="Submit Request">
+      </div>
+    </form>
+  </div>
+  <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Listen for the form submission
-    document.getElementById('entryForm').addEventListener('submit', function(e) {
-      e.preventDefault(); // Prevent the default form submission
+    // Get references to elements for passcode functionality
+    const statusSelect = document.getElementById('status');
+    const passcodeContainer = document.getElementById('passcodeContainer');
+    const titleInput = document.getElementById('title');
+    const passcodeInput = document.getElementById('passcode');
 
-      // Gather form data
-      const formData = new FormData(this);
+    // Check if the current request type requires a passcode.
+    function checkPasscodeRequirement() {
+      const rt = statusSelect.value;
+      if (rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") {
+        passcodeContainer.style.display = 'block';
+        titleInput.disabled = true;
+      } else {
+        passcodeContainer.style.display = 'none';
+        passcodeInput.value = "";
+        titleInput.disabled = false;
+      }
+    }
 
-      // Send data to the server-side PHP script using fetch
-      fetch('save.php', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.text())
-      .then(data => {
-        console.log('Server Response:', data);
-        // Optionally, add code here to update the UI with the response
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+    statusSelect.addEventListener('change', checkPasscodeRequirement);
+
+    // When passcode is entered, enable the Customer Name and Invoice field if correct.
+    passcodeInput.addEventListener('input', function() {
+      const rt = statusSelect.value;
+      const code = passcodeInput.value;
+      if ((rt === "Awaiting Order" && code === "216521") ||
+          (rt === "On Order" && code === "191221") ||
+          (rt === "Moved to Delivery" && code === "201896")) {
+        titleInput.disabled = false;
+      } else {
+        titleInput.disabled = true;
+      }
     });
   </script>
 </body>
