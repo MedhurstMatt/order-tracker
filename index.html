@@ -2,30 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sheety Test</title>
+  <title>Sheety POST Test</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #FFF;
-      color: #000;
+      background: #FFF;         /* White background */
+      color: #000;              /* Black text */
       margin: 20px;
+      padding: 20px;
     }
     #statusMessage {
       margin-top: 20px;
       padding: 10px;
-      border: 2px solid #FFA500;
+      border: 2px solid #FFA500; /* Solid orange border */
       border-radius: 4px;
       background-color: #FFF;
       color: #000;
     }
     button {
       padding: 10px 20px;
-      background-color: #FFA500;
+      background-color: #FFA500; /* Orange button */
       border: none;
       border-radius: 4px;
       color: #000;
       cursor: pointer;
       font-weight: bold;
+      transition: background 0.3s ease;
     }
     button:hover {
       background-color: #e69500;
@@ -33,31 +35,43 @@
   </style>
 </head>
 <body>
-  <h1>Sheety API Test</h1>
-  <button onclick="testSheety()">Test Sheety GET</button>
-  <div id="statusMessage">Click the button to test.</div>
+  <h1>Sheety POST Test</h1>
+  <button onclick="testSheetyPost()">Test Sheety POST</button>
+  <div id="statusMessage">Click the button to add a record to Sheety.</div>
 
   <script>
-    // Replace with your actual Sheety endpoint URL:
+    // Replace with your Sheety endpoint URL
     const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1';
 
-    // Function to test the GET call to Sheety
-    function testSheety() {
-      document.getElementById("statusMessage").textContent = "Loading data from Sheety...";
-      fetch(sheetyUrl)
-        .then(response => response.json())
-        .then(json => {
-          // Log the full response to the console
-          console.log("Sheety response:", json);
-          // Check if the property exists (it might be named differently—adjust as needed)
-          const orders = json.sheet1;
-          document.getElementById("statusMessage").textContent = 
-            "Success! Retrieved " + (orders ? orders.length : 0) + " orders from Sheety.";
-        })
-        .catch(error => {
-          console.error("Error fetching from Sheety:", error);
-          document.getElementById("statusMessage").textContent = "Error fetching data from Sheety.";
-        });
+    function testSheetyPost() {
+      document.getElementById("statusMessage").textContent = "Sending data to Sheety...";
+
+      // Create sample order data using current time for a unique id and timestamp
+      const sampleOrder = {
+        id: Date.now(), // Unique id generated from current time
+        title: "Sample Order",
+        notes: "This is a sample order sent via Sheety POST.",
+        status: "to be ordered",
+        employee: "Test Employee",
+        timestamp: new Date().toISOString() // Current timestamp
+      };
+
+      const body = { sheet1: sampleOrder };
+
+      fetch(sheetyUrl, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+      .then(response => response.json())
+      .then(json => {
+        console.log("POST response:", json);
+        document.getElementById("statusMessage").textContent = "Record added successfully!";
+      })
+      .catch(error => {
+        console.error("Error during POST:", error);
+        document.getElementById("statusMessage").textContent = "Error adding record.";
+      });
     }
   </script>
 </body>
