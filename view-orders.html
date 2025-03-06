@@ -297,8 +297,8 @@
       requestTypeSelect += `</select>`;
       row.querySelector('.requestType').innerHTML = requestTypeSelect;
 
-      // Create drop-down for Employee
-      let employeeSelect = `<select id="employeeSelect_${recordId}">`;
+      // Create drop-down for Employee with a default blank option.
+      let employeeSelect = `<select id="employeeSelect_${recordId}"><option value="">Select Employee</option>`;
       employeeOptions.forEach(opt => {
         employeeSelect += `<option value="${opt}" ${opt === employee ? 'selected' : ''}>${opt}</option>`;
       });
@@ -359,7 +359,7 @@
       const originalNotes = row.dataset.originalNotes || "";
       let updatedNotes = originalNotes;
       
-      // If a new comment is provided, append it (with a separator and timestamp)
+      // Append new comment if provided
       if (newComment) {
         const now = new Date();
         updatedNotes += `\n\n-----\nComment added on ${now.toLocaleString()}:\n${newComment}`;
@@ -367,6 +367,13 @@
       
       const updatedRequestType = row.querySelector('.requestType select').value;
       const updatedEmployee = document.getElementById(`employeeSelect_${recordId}`).value;
+      
+      // Ensure an employee is selected.
+      if (!updatedEmployee) {
+        alert("Please select a staff member from the Employee drop-down.");
+        return;
+      }
+      
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const updatedCustomer = customerInput.value;
 
