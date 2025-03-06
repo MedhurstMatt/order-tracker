@@ -29,10 +29,10 @@
       position: relative;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    /* Navigation link in header fixed to top right */
+    /* Unobtrusive navigation link in top-right */
     .header a.nav-link {
       position: absolute;
-      right: 10px;
+      right: 15px;
       top: 50%;
       transform: translateY(-50%);
       color: #fff;
@@ -139,14 +139,19 @@
       margin-top: auto;
     }
     /* Specific elements */
-    .unlock-code, .new-comment, .editor-select { margin-top: 6px; font-size: 0.9rem; }
-    .container, input, textarea, select, button { transition: all 0.3s ease; }
+    .unlock-code, .new-comment, .editor-select {
+      margin-top: 6px;
+      font-size: 0.9rem;
+    }
+    .container, input, textarea, select, button {
+      transition: all 0.3s ease;
+    }
   </style>
 </head>
 <body>
   <div class="header">
     Medhurst Kitchen Equipment
-    <a href="https://medhurstmatt.github.io/order-tracker/" class="nav-link" target="_blank">Request Form</a>
+    <a href="https://medhurstmatt.github.io/order-tracker/view-orders.html" class="nav-link" target="_blank">Request Form</a>
   </div>
   <div class="container">
     <h2>Manage Medhurst Requests</h2>
@@ -385,10 +390,14 @@
       const row = button.closest('tr');
       const newComment = document.getElementById(`newComment_${recordId}`).value.trim();
       const originalNotes = row.dataset.originalNotes || "";
-      let updatedNotes = originalNotes;
+      let updatedNotes = "";
       if (newComment) {
         const now = new Date();
-        updatedNotes += `\n\n--------------------------------------------------\nComment added on ${now.toLocaleString()}:\n${newComment}`;
+        const newNoteBlock = `--------------------------------------------------\nComment added on ${now.toLocaleString()}:\n${newComment}`;
+        // Insert new comment at the top.
+        updatedNotes = newNoteBlock + "\n\n" + originalNotes;
+      } else {
+        updatedNotes = originalNotes;
       }
       const updatedRequestType = document.getElementById(`requestTypeSelect_${recordId}`).value;
       const updatedEmployee = row.querySelector('.employee input').value;
@@ -416,7 +425,7 @@
         changeLog += `\nEmployee changed from "${originalEmployee}" to "${updatedEmployee}" by ${editor} on ${new Date().toLocaleString()}.`;
       }
       if (changeLog) {
-        updatedNotes += `\n\n--------------------------------------------------\n${changeLog}`;
+        updatedNotes = `--------------------------------------------------\n${changeLog}\n\n` + updatedNotes;
       }
       const updatedData = {
         sheet1: {
