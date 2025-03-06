@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Medhurst Kitchen Equipment - Request Form</title>
+  <title>Medhurst Kitchen Equipment - Manage Requests</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Google Fonts for modern typography -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
       position: relative;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    /* Navigation link in header */
+    /* Navigation link in header styled identically to the Request Form version */
     .header a.nav-link {
       position: absolute;
       right: 20px;
@@ -43,15 +43,18 @@
       border-radius: 6px;
       transition: background 0.3s ease;
     }
-    .header a.nav-link:hover { background: #e07a00; }
+    .header a.nav-link:hover {
+      background: #e07a00;
+    }
     .container {
       background: #fff;
       width: 95%;
-      max-width: 600px;
+      max-width: 1200px;
       margin: 20px auto;
-      padding: 20px 30px;
+      padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      overflow-x: auto;
     }
     h2 {
       text-align: center;
@@ -59,48 +62,74 @@
       font-size: 1.75rem;
       color: #222;
     }
-    label {
-      display: block;
-      margin: 10px 0 4px;
-      font-weight: 500;
+    .filter-container {
+      text-align: center;
+      margin-bottom: 20px;
     }
-    input[type="text"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
+    .filter-container label {
+      font-size: 1rem;
+      margin-right: 8px;
+    }
+    .filter-container select {
+      padding: 8px 12px;
+      font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 1rem;
-      transition: border 0.3s ease;
-    }
-    input[type="text"]:focus,
-    textarea:focus,
-    select:focus {
-      border-color: #FF8C00;
       outline: none;
+      transition: border-color 0.3s ease;
     }
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    .button-container {
-      margin-top: 20px;
-      text-align: center;
-    }
-    input[type="submit"] {
-      background: #222;
-      color: #fff;
-      border: none;
-      padding: 14px;
+    .filter-container select:focus { border-color: #FF8C00; }
+    table {
       width: 100%;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
+      border-collapse: collapse;
+      margin-bottom: 20px;
     }
-    input[type="submit"]:hover { background: #444; }
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #eee;
+      text-align: left;
+      font-size: 0.9rem;
+      vertical-align: top;
+    }
+    th { background: #222; color: #fff; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    tr:hover { background: #f1f1f1; }
+    /* Collapsible notes styling */
+    .notes-display {
+      white-space: pre-wrap;
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.9rem;
+      overflow: hidden;
+      max-height: 80px;
+      position: relative;
+      transition: max-height 0.3s ease;
+    }
+    .notes-display.expanded { max-height: none; }
+    .read-more-btn {
+      background: none;
+      border: none;
+      color: #007BFF;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0;
+      margin-top: 4px;
+    }
+    hr { border: 0; border-top: 1px solid #ccc; margin: 8px 0; }
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.3s ease;
+      margin: 2px;
+    }
+    .edit-btn { background: #007BFF; color: #fff; }
+    .edit-btn:hover { background: #0056b3; }
+    .save-btn { background: #28a745; color: #fff; }
+    .save-btn:hover { background: #1e7e34; }
+    .cancel-btn { background: #dc3545; color: #fff; }
+    .cancel-btn:hover { background: #c82333; }
     .footer {
       background: #222;
       color: #fff;
@@ -109,151 +138,319 @@
       font-size: 0.85rem;
       margin-top: auto;
     }
-    /* Passcode container styling */
-    #passcodeContainer {
-      display: none;
-      margin-bottom: 12px;
+    /* Specific elements */
+    .unlock-code, .new-comment, .editor-select {
+      margin-top: 6px;
+      font-size: 0.9rem;
     }
-    #passcodeContainer input {
-      border-color: #FF8C00;
+    .container, input, textarea, select, button {
+      transition: all 0.3s ease;
     }
   </style>
 </head>
 <body>
   <div class="header">
     Medhurst Kitchen Equipment
-    <a href="https://medhurstmatt.github.io/order-tracker/view-orders.html" class="nav-link" target="_blank">Manage Requests</a>
+    <a href="https://medhurstmatt.github.io/order-tracker/" class="nav-link" target="_blank">Request Form</a>
   </div>
   <div class="container">
-    <h2>Medhurst Request Form</h2>
-    <form id="requestForm">
-      <!-- Customer Name and Invoice -->
-      <label for="title">Customer Name and Invoice</label>
-      <input type="text" id="title" name="title" placeholder="Enter customer name and invoice" required>
-      
-      <!-- Passcode container (hidden by default) -->
-      <div id="passcodeContainer">
-        <label for="passcode">Passcode</label>
-        <input type="text" id="passcode" name="passcode" placeholder="Enter passcode">
-      </div>
-      
-      <!-- Request Type positioned above Notes -->
-      <label for="status">Request Type</label>
-      <select id="status" name="status" required>
-        <option value="To Be Ordered">To Be Ordered</option>
-        <option value="Awaiting Order">Awaiting Order</option>
-        <option value="On Order">On Order</option>
-        <option value="Parked">Parked</option>
-        <option value="Store Pick Up">Store Pick Up</option>
-        <option value="Warehouse Pick Up">Warehouse Pick Up</option>
-        <option value="Delivery Request">Delivery Request</option>
-        <option value="Moved to Delivery">Moved to Delivery</option>
-        <option value="Paul Delivery">Paul Delivery</option>
-        <option value="Freight Forward">Freight Forward</option>
-        <option value="Completed">Completed</option>
-        <option value="Canceled">Canceled</option>
+    <h2>Manage Medhurst Requests</h2>
+    
+    <!-- Filter container -->
+    <div class="filter-container">
+      <label for="filterSelect">Filter by Request Type:</label>
+      <select id="filterSelect">
+        <option value="All">All</option>
       </select>
-      
-      <!-- Notes placed after Request Type -->
-      <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" placeholder="Enter notes here..." required></textarea>
-      
-      <!-- Employee -->
-      <label for="employee">Employee</label>
-      <select id="employee" name="employee" required>
-        <option value="">Select Employee</option>
-        <option value="Allan Bakker">Allan Bakker</option>
-        <option value="Anne McShane">Anne McShane</option>
-        <option value="Cathy Mayne">Cathy Mayne</option>
-        <option value="Colin Chung">Colin Chung</option>
-        <option value="Elaine Killalea">Elaine Killalea</option>
-        <option value="Fergus McShane">Fergus McShane</option>
-        <option value="Garry Williams">Garry Williams</option>
-        <option value="Hamish Killalea">Hamish Killalea</option>
-        <option value="Matthew Tonks">Matthew Tonks</option>
-        <option value="Matthew Tracey">Matthew Tracey</option>
-        <option value="Paul Tickner">Paul Tickner</option>
-        <option value="Richard Medhurst">Richard Medhurst</option>
-        <option value="Toby McShane">Toby McShane</option>
-      </select>
-      
-      <!-- Button container for mobile-friendly submit -->
-      <div class="button-container">
-        <input type="submit" value="Submit Request">
-      </div>
-    </form>
+    </div>
+    
+    <div id="recordsContainer">Loading records...</div>
   </div>
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    const statusSelect = document.getElementById('status');
-    const passcodeContainer = document.getElementById('passcodeContainer');
-    const titleInput = document.getElementById('title');
-    const passcodeInput = document.getElementById('passcode');
+    const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
+    const requestTypeOptions = [
+      "To Be Ordered", "Awaiting Order", "On Order", "Parked", "Store Pick Up", "Warehouse Pick Up",
+      "Delivery Request", "Moved to Delivery", "Paul Delivery", "Freight Forward", "Completed", "Canceled"
+    ];
+    const employeeOptions = [
+      "Allan Bakker", "Anne McShane", "Cathy Mayne", "Colin Chung", "Elaine Killalea", "Fergus McShane",
+      "Garry Williams", "Hamish Killalea", "Matthew Tonks", "Matthew Tracey", "Paul Tickner", "Richard Medhurst", "Toby McShane"
+    ];
+    let allRecords = [];
 
-    // Check if the current request type requires a passcode.
-    function checkPasscodeRequirement() {
-      const rt = statusSelect.value;
-      if (rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") {
-        passcodeContainer.style.display = 'block';
-        titleInput.disabled = true;
+    function formatTimestamp(timestamp) {
+      const dateObj = new Date(timestamp);
+      const day = ("0" + dateObj.getDate()).slice(-2);
+      const month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
+      const year = dateObj.getFullYear();
+      let hours = dateObj.getHours();
+      const minutes = ("0" + dateObj.getMinutes()).slice(-2);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+    }
+
+    function formatNotes(notes) {
+      const parts = notes.split("\n\n-----\n");
+      return parts.map(part => `<div>${part.trim()}</div>`).join("<hr>");
+    }
+
+    function renderFilter() {
+      const filterSelect = document.getElementById('filterSelect');
+      filterSelect.innerHTML = `<option value="All">All</option>`;
+      requestTypeOptions.forEach(rt => {
+        const opt = document.createElement('option');
+        opt.value = rt;
+        opt.textContent = rt;
+        filterSelect.appendChild(opt);
+      });
+      filterSelect.addEventListener('change', () => { renderTable(allRecords); });
+    }
+
+    function loadRecords() {
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(json => {
+          console.log("Fetched JSON:", json);
+          const records = json.sheet1S || json.sheet1;
+          if (!records) throw new Error("No records found in the response.");
+          allRecords = records;
+          renderFilter();
+          renderTable(records);
+        })
+        .catch(error => {
+          console.error("Error fetching records:", error);
+          document.getElementById('recordsContainer').innerText = "Error loading records: " + error.message;
+        });
+    }
+
+    function renderTable(records) {
+      const filterValue = document.getElementById('filterSelect').value;
+      let filteredRecords = (filterValue === "All") ? records : records.filter(record => record.status === filterValue);
+      let html = `<table>
+        <thead>
+          <tr>
+            <th>Customer Name and Invoice</th>
+            <th>Notes</th>
+            <th>Request Type</th>
+            <th>Employee</th>
+            <th>Timestamp</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>`;
+      filteredRecords.forEach(record => {
+        const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
+        html += `<tr data-record-id="${record.id}">
+          <td class="customer">${record.title}</td>
+          <td class="notes">
+            <div class="notes-display collapsed">${formatNotes(record.notes)}</div>
+            <button class="read-more-btn" onclick="toggleNotes(this)">Read More</button>
+          </td>
+          <td class="requestType">${record.status}</td>
+          <td class="employee">${record.employee}</td>
+          <td class="timestamp">${formatTimestamp(record.timestamp)}</td>
+          <td>`;
+        if (canEdit) {
+          html += `<button class="edit-btn" onclick="editRow(this)">Edit</button>`;
+        } else {
+          html += `Locked`;
+        }
+        html += `</td></tr>`;
+      });
+      html += `</tbody></table>`;
+      document.getElementById('recordsContainer').innerHTML = html;
+    }
+
+    function toggleNotes(button) {
+      const notesDiv = button.parentElement.querySelector('.notes-display');
+      if (notesDiv.classList.contains('expanded')) {
+        notesDiv.classList.remove('expanded');
+        button.textContent = "Read More";
       } else {
-        passcodeContainer.style.display = 'none';
-        passcodeInput.value = "";
-        titleInput.disabled = false;
+        notesDiv.classList.add('expanded');
+        button.textContent = "Read Less";
       }
     }
 
-    statusSelect.addEventListener('change', checkPasscodeRequirement);
+    function editRow(button) {
+      const row = button.closest('tr');
+      const recordId = row.getAttribute('data-record-id');
+      const customer = row.querySelector('.customer').innerText;
+      const notes = row.querySelector('.notes .notes-display').innerText;
+      const requestType = row.querySelector('.requestType').innerText;
+      const employee = row.querySelector('.employee').innerText;
+      const timestamp = row.querySelector('.timestamp').innerText;
+      row.dataset.originalNotes = notes;
+      row.dataset.originalRequestType = requestType;
+      row.dataset.originalEmployee = employee;
 
-    // When passcode is entered, enable the title if the code is correct.
-    passcodeInput.addEventListener('input', function() {
-      const rt = statusSelect.value;
-      const code = passcodeInput.value;
-      if ((rt === "Awaiting Order" && code === "216521") ||
-          (rt === "On Order" && code === "191221") ||
-          (rt === "Moved to Delivery" && code === "201896")) {
-        titleInput.disabled = false;
-      } else {
-        titleInput.disabled = true;
+      let editorHTML = `<label style="font-size:0.9rem;">Who are you?</label>
+        <select id="editorSelect_${recordId}" class="editor-select">
+          <option value="">Select your name</option>`;
+      employeeOptions.forEach(opt => { editorHTML += `<option value="${opt}">${opt}</option>`; });
+      editorHTML += `</select>`;
+
+      row.querySelector('.customer').innerHTML = `
+        <div>
+          <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
+          <br/><input type="text" placeholder="Unlock Code" id="unlockCode_${recordId}" class="unlock-code" />
+          <br/>${editorHTML}
+        </div>
+      `;
+      row.querySelector('.notes').innerHTML = `
+        <div>
+          <div class="notes-display expanded">${formatNotes(notes)}</div>
+          <textarea rows="2" placeholder="Add new comment (cannot delete original)..." id="newComment_${recordId}" class="new-comment" disabled></textarea>
+        </div>
+      `;
+      let requestTypeSelect = `<select id="requestTypeSelect_${recordId}" disabled>`;
+      requestTypeOptions.forEach(opt => {
+        requestTypeSelect += `<option value="${opt}" ${opt === requestType ? 'selected' : ''}>${opt}</option>`;
+      });
+      requestTypeSelect += `</select>`;
+      row.querySelector('.requestType').innerHTML = requestTypeSelect;
+      row.querySelector('.employee').innerHTML = `<input type="text" value="${employee}" disabled />`;
+      row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
+
+      const editorSelect = document.getElementById(`editorSelect_${recordId}`);
+      const customerInput = document.getElementById(`customerInput_${recordId}`);
+      const unlockInput = document.getElementById(`unlockCode_${recordId}`);
+      const newCommentArea = document.getElementById(`newComment_${recordId}`);
+      const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
+
+      editorSelect.addEventListener('change', function() {
+        if (editorSelect.value !== "") {
+          newCommentArea.disabled = false;
+          requestSelect.disabled = false;
+          if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order" || requestSelect.value === "Moved to Delivery") {
+            unlockInput.style.display = 'block';
+            if (requestSelect.value === "Awaiting Order") {
+              unlockInput.placeholder = "Enter code for Awaiting Order";
+            } else if (requestSelect.value === "On Order") {
+              unlockInput.placeholder = "Enter code for On Order";
+            } else if (requestSelect.value === "Moved to Delivery") {
+              unlockInput.placeholder = "Enter code for Moved to Delivery";
+            }
+          } else {
+            unlockInput.style.display = 'none';
+            unlockInput.value = "";
+            customerInput.disabled = true;
+          }
+        } else {
+          newCommentArea.disabled = true;
+          requestSelect.disabled = true;
+        }
+      });
+
+      requestSelect.addEventListener('change', function() {
+        if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order" || requestSelect.value === "Moved to Delivery") {
+          unlockInput.style.display = 'block';
+          if (requestSelect.value === "Awaiting Order") {
+            unlockInput.placeholder = "Enter code for Awaiting Order";
+          } else if (requestSelect.value === "On Order") {
+            unlockInput.placeholder = "Enter code for On Order";
+          } else if (requestSelect.value === "Moved to Delivery") {
+            unlockInput.placeholder = "Enter code for Moved to Delivery";
+          }
+          customerInput.disabled = true;
+        } else {
+          unlockInput.style.display = 'none';
+          unlockInput.value = "";
+          customerInput.disabled = true;
+        }
+      });
+
+      unlockInput.addEventListener('input', function() {
+        if (requestSelect.value === "Awaiting Order" && unlockInput.value === "216521") {
+          customerInput.disabled = false;
+        } else if (requestSelect.value === "On Order" && unlockInput.value === "191221") {
+          customerInput.disabled = false;
+        } else if (requestSelect.value === "Moved to Delivery" && unlockInput.value === "201896") {
+          customerInput.disabled = false;
+        } else {
+          customerInput.disabled = true;
+        }
+      });
+
+      const actionsCell = row.querySelector('td:last-child');
+      actionsCell.innerHTML = `
+        <button class="save-btn" onclick="saveRow(this, '${recordId}')">Save</button>
+        <button class="cancel-btn" onclick="cancelEdit(this)">Cancel</button>
+      `;
+    }
+
+    function cancelEdit(button) { loadRecords(); }
+
+    function saveRow(button, recordId) {
+      const row = button.closest('tr');
+      const newComment = document.getElementById(`newComment_${recordId}`).value.trim();
+      const originalNotes = row.dataset.originalNotes || "";
+      let updatedNotes = originalNotes;
+      if (newComment) {
+        const now = new Date();
+        updatedNotes += `\n\n--------------------------------------------------\nComment added on ${now.toLocaleString()}:\n${newComment}`;
       }
-    });
-
-    document.getElementById('requestForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const rt = statusSelect.value;
-      if ((rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") && titleInput.disabled) {
-        alert("Please enter the correct passcode to unlock the Customer Name and Invoice field.");
+      const updatedRequestType = document.getElementById(`requestTypeSelect_${recordId}`).value;
+      const updatedEmployee = row.querySelector('.employee input').value;
+      const customerInput = document.getElementById(`customerInput_${recordId}`);
+      const updatedCustomer = customerInput.value;
+      const editor = document.getElementById(`editorSelect_${recordId}`).value;
+      if (!editor) {
+        alert("Please select who you are before saving.");
         return;
       }
-      const requestData = {
+      const unlockCodeValue = document.getElementById(`unlockCode_${recordId}`).value;
+      if ((updatedRequestType === "Awaiting Order" && unlockCodeValue !== "216521") ||
+          (updatedRequestType === "On Order" && unlockCodeValue !== "191221") ||
+          (updatedRequestType === "Moved to Delivery" && unlockCodeValue !== "201896")) {
+        alert("Correct unlock code is required to update the Customer Name for this Request Type.");
+        return;
+      }
+      const originalRequestType = row.dataset.originalRequestType;
+      const originalEmployee = row.dataset.originalEmployee;
+      let changeLog = "";
+      if (updatedRequestType !== originalRequestType) {
+        changeLog += `\nStatus changed from "${originalRequestType}" to "${updatedRequestType}" by ${editor} on ${new Date().toLocaleString()}.`;
+      }
+      if (updatedEmployee !== originalEmployee) {
+        changeLog += `\nEmployee changed from "${originalEmployee}" to "${updatedEmployee}" by ${editor} on ${new Date().toLocaleString()}.`;
+      }
+      if (changeLog) {
+        updatedNotes += `\n\n--------------------------------------------------\n${changeLog}`;
+      }
+      const updatedData = {
         sheet1: {
-          title: titleInput.value,
-          notes: document.getElementById('notes').value,
-          status: rt,
-          employee: document.getElementById('employee').value,
+          title: updatedCustomer,
+          notes: updatedNotes,
+          status: updatedRequestType,
+          employee: updatedEmployee,
           timestamp: new Date().toISOString()
         }
       };
-      fetch('https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1', {
-        method: 'POST',
+      fetch(`${apiUrl}/${recordId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(updatedData)
       })
       .then(response => {
-        if (!response.ok) throw new Error("Network response was not ok");
+        if (!response.ok) throw new Error('Network response was not ok');
         return response.json();
       })
-      .then(data => {
-        alert("Request submitted successfully!");
-        document.getElementById('requestForm').reset();
-        passcodeContainer.style.display = 'none';
-        titleInput.disabled = false;
+      .then(json => {
+        console.log('Updated record:', json.sheet1);
+        loadRecords();
       })
       .catch(error => {
-        alert("Error: " + error.message);
+        console.error('Error updating record:', error);
+        alert('Error updating record: ' + error.message);
       });
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadRecords);
   </script>
 </body>
 </html>
