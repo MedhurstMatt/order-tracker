@@ -92,26 +92,9 @@
     </form>
   </div>
 
-  <!-- Filter Section -->
-  <div class="section">
-    <h2>Filter Orders</h2>
-    <select id="filterStatus">
-      <option value="all">All</option>
-      <option value="to be ordered">to be ordered</option>
-      <option value="on order">on order</option>
-      <option value="awaiting order">awaiting order</option>
-      <option value="store pick up">store pick up</option>
-      <option value="warehouse pick up">warehouse pick up</option>
-      <option value="delivery request">delivery request</option>
-      <option value="freight forward">freight forward</option>
-      <option value="completed">completed</option>
-      <option value="canceled">canceled</option>
-    </select>
-  </div>
-
   <!-- Orders Table -->
   <div class="section">
-    <h2>Current Orders</h2>
+    <h2>All Orders</h2>
     <table id="ordersTable">
       <thead>
         <tr>
@@ -120,25 +103,26 @@
           <th>Notes</th>
           <th>Status</th>
           <th>Employee</th>
-          <th>Actions</th>
+          <th>Timestamp</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Orders will be inserted here -->
+        <!-- Rows will be inserted here -->
       </tbody>
     </table>
   </div>
 
   <script>
-    // Sheety endpoint (your Google Sheet)
+    // Sheety endpoint URL
     const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1';
 
+    // Global variables
     let currentEmployee = "";
-    // Required columns: id, title, notes, status, employee, timestamp.
+    // List of statuses (you can add more if needed)
     const statuses = ["to be ordered", "on order", "awaiting order", "store pick up", "warehouse pick up", "delivery request", "freight forward", "completed", "canceled"];
     let orders = [];
 
-    // Staff Login: set employee from the drop‑down list
+    // Staff Login
     document.getElementById("setEmployeeBtn").addEventListener("click", () => {
       const employeeSelect = document.getElementById("employeeSelect");
       if (employeeSelect.value !== "") {
@@ -157,17 +141,19 @@
     // On page load, restore employee and load orders
     window.addEventListener("load", () => {
       const storedEmployee = localStorage.getItem("employeeName");
-      if (storedEmployee) currentEmployee = storedEmployee;
+      if (storedEmployee) {
+        currentEmployee = storedEmployee;
+      }
       updateEmployeeDisplay();
       loadOrders();
     });
 
-    // Load orders from Sheety via GET request
+    // Load orders from the Google Sheet via Sheety (GET request)
     async function loadOrders() {
       try {
         const response = await fetch(sheetyUrl);
         const data = await response.json();
-        // Assuming the returned data has a property "sheet1" that is an array of orders
+        // Adjust this if your returned property name is different; here we assume "sheet1" contains the rows.
         orders = data.sheet1;
         renderOrders();
       } catch (error) {
@@ -175,38 +161,25 @@
       }
     }
 
-    // Render orders in the table
+    // Render orders in a table
     function renderOrders() {
-      const filter = document.getElementById("filterStatus").value;
       const tbody = document.getElementById("ordersTable").querySelector("tbody");
       tbody.innerHTML = "";
       orders.forEach(order => {
-        if (filter !== "all" && order.status !== filter) return;
-        const isEditable = (order.status !== "completed" && order.status !== "canceled");
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${order.id}</td>
           <td>${order.title}</td>
-          <td>
-            <textarea onchange="updateOrderField(${order.id}, 'notes', this.value)" ${isEditable ? "" : "disabled"}>${order.notes || ""}</textarea>
-          </td>
-          <td>
-            <select onchange="updateOrderField(${order.id}, 'status', this.value)" ${isEditable ? "" : "disabled"}>
-              ${statuses.filter(s => s !== "canceled").map(s => `<option value="${s}" ${order.status === s ? "selected" : ""}>${s}</option>`).join("")}
-            </select>
-          </td>
+          <td>${order.notes || ""}</td>
+          <td>${order.status}</td>
           <td>${order.employee || ""}</td>
-          <td>
-            ${isEditable ? `<button onclick="advanceStatus(${order.id})">Next Step</button>
-                           <button onclick="cancelOrder(${order.id})">Cancel</button>` : ""}
-            <button onclick="deleteOrder(${order.id})">Delete</button>
-          </td>
+          <td>${order.timestamp || ""}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // Add new order using POST
+    // Add new order (POST)
     document.getElementById("orderForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!currentEmployee) {
@@ -215,15 +188,19 @@
       }
       const title = document.getElementById("orderTitle").value;
       const notes = document.getElementById("orderNotes").value;
+      // Generate a unique id using current time (this serves as the id)
+      const id = Date.now();
+      // Hardcode status as "to be ordered" and timestamp as current time
       const newOrder = {
+        id: id,
         title: title,
         notes: notes,
-        status: statuses[0], // default to "to be ordered"
+        status: statuses[0],
         employee: currentEmployee,
         timestamp: new Date().toISOString()
       };
+      const body = { sheet1: newOrder };
       try {
-        const body = { sheet1: newOrder };
         await fetch(sheetyUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -235,58 +212,6 @@
         console.error("Error adding order:", error);
       }
     });
-
-    // Update order field (notes or status) using PUT
-    async function updateOrderField(id, field, value) {
-      const updateObj = {};
-      updateObj[field] = value;
-      try {
-        await fetch(`${sheetyUrl}/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sheet1: updateObj })
-        });
-        loadOrders();
-      } catch (error) {
-        console.error("Error updating order:", error);
-      }
-    }
-
-    // Advance order status to next step
-    async function advanceStatus(id) {
-      const order = orders.find(o => o.id === id);
-      if (!order) return;
-      const currentIndex = statuses.indexOf(order.status);
-      if (currentIndex >= 0 && currentIndex < statuses.indexOf("completed")) {
-        updateOrderField(id, "status", statuses[currentIndex + 1]);
-      }
-    }
-
-    // Cancel order by setting its status to "canceled"
-    async function cancelOrder(id) {
-      updateOrderField(id, "status", "canceled");
-    }
-
-    // Delete order with password protection (password: 216521)
-    async function deleteOrder(id) {
-      const pwd = prompt("Enter delete password:");
-      if (pwd === null) return;
-      if (pwd !== "216521") {
-        alert("Incorrect password. Deletion aborted.");
-        return;
-      }
-      if (confirm("Are you sure you want to permanently delete this order?")) {
-        try {
-          await fetch(`${sheetyUrl}/${id}`, { method: "DELETE" });
-          loadOrders();
-        } catch (error) {
-          console.error("Error deleting order:", error);
-        }
-      }
-    }
-
-    // Re-render orders when the filter changes
-    document.getElementById("filterStatus").addEventListener("change", renderOrders);
   </script>
 </body>
 </html>
