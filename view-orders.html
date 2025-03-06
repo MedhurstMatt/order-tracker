@@ -38,7 +38,6 @@
       margin-bottom: 20px;
       color: #333;
     }
-    /* Filter styling */
     .filter-container {
       margin-bottom: 15px;
       text-align: center;
@@ -114,21 +113,22 @@
     .new-comment {
       margin-top: 5px;
     }
+    /* Editor select styling */
+    .editor-select {
+      margin-bottom: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="header">Medhurst Kitchen Equipment</div>
   <div class="container">
     <h2>Manage Medhurst Requests</h2>
-    
-    <!-- Filter container to choose which Request Types to display -->
     <div class="filter-container">
       <label for="filterSelect">Filter by Request Type: </label>
       <select id="filterSelect">
         <option value="All">All</option>
       </select>
     </div>
-    
     <div id="recordsContainer">Loading records...</div>
   </div>
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
@@ -137,7 +137,7 @@
     // Base API URL (internal ID is used for API calls but not shown)
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
-    // Updated drop-down options for Request Type and Employee
+    // Options for Request Type and Employee lists.
     const requestTypeOptions = [
       "To Be Ordered",
       "Awaiting Order",
@@ -169,13 +169,11 @@
       "Toby McShane"
     ];
 
-    // Global variable to store all records so filtering works
     let allRecords = [];
 
-    // Render filter drop-down options (adds All plus each request type)
+    // Render filter drop-down options.
     function renderFilter() {
       const filterSelect = document.getElementById('filterSelect');
-      // Clear previous options except "All"
       filterSelect.innerHTML = `<option value="All">All</option>`;
       requestTypeOptions.forEach(rt => {
         const opt = document.createElement('option');
@@ -188,18 +186,17 @@
       });
     }
 
-    // Load records from Sheety using GET
+    // Load records from Sheety.
     function loadRecords() {
       fetch(apiUrl)
         .then(response => response.json())
         .then(json => {
           console.log("Fetched JSON:", json);
-          // Use json.sheet1S or json.sheet1 (whichever is available)
           const records = json.sheet1S || json.sheet1;
           if (!records) {
             throw new Error("No records found in the response.");
           }
-          allRecords = records; // store globally
+          allRecords = records;
           renderFilter();
           renderTable(records);
         })
@@ -209,7 +206,7 @@
         });
     }
 
-    // Render records in a table (filtered by selected request type if not "All")
+    // Render records table with optional filtering.
     function renderTable(records) {
       const filterValue = document.getElementById('filterSelect').value;
       let filteredRecords = records;
@@ -218,7 +215,6 @@
       }
       let html = '<table>';
       html += '<thead><tr>';
-      // Display a single column for "Customer Name and Invoice" (from title)
       html += '<th>Customer Name and Invoice</th>';
       html += '<th>Notes</th>';
       html += '<th>Request Type</th>';
@@ -228,7 +224,6 @@
       html += '</tr></thead>';
       html += '<tbody>';
       filteredRecords.forEach(record => {
-        // Do not allow editing if status is Completed or Canceled
         const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
         html += `<tr data-record-id="${record.id}">
           <td class="customer">${record.title}</td>
@@ -248,64 +243,98 @@
       document.getElementById('recordsContainer').innerHTML = html;
     }
 
-    // Turn a row into editable fields
+    // When editing, require the editor to select their name first.
     function editRow(button) {
       const row = button.closest('tr');
       const recordId = row.getAttribute('data-record-id');
 
-      // Get current values
+      // Get current values.
       const customer = row.querySelector('.customer').innerText;
       const notes = row.querySelector('.notes').innerText;
       const requestType = row.querySelector('.requestType').innerText;
       const employee = row.querySelector('.employee').innerText;
       const timestamp = row.querySelector('.timestamp').innerText;
 
-      // Store original notes and original request type (for logging changes)
+      // Store original values for change logging.
       row.dataset.originalNotes = notes;
       row.dataset.originalRequestType = requestType;
       row.dataset.originalEmployee = employee;
 
-      // For Customer Name and Invoice, create a container with the input and an Unlock Code field.
+      // Add a mandatory "Who are you?" drop-down (editor identity).
+      let editorHTML = `<label>Who are you?</label>
+        <select id="editorSelect_${recordId}" class="editor-select">
+          <option value="">Select your name</option>`;
+      employeeOptions.forEach(opt => {
+        editorHTML += `<option value="${opt}">${opt}</option>`;
+      });
+      editorHTML += `</select>`;
+
+      // Build the editable HTML.
+      // Customer (and invoice) field with unlock code.
       row.querySelector('.customer').innerHTML = `
         <div>
           <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
           <br/><input type="text" placeholder="Unlock Code" id="unlockCode_${recordId}" class="unlock-code" />
+          <br/>${editorHTML}
         </div>
       `;
-
-      // Instead of replacing Notes directly, show the original notes and add a "New Comment" area.
+      // Notes: show original notes plus a "New Comment" textarea.
       row.querySelector('.notes').innerHTML = `
         <div>
           <div style="white-space: pre-wrap;">${notes}</div>
-          <textarea rows="2" placeholder="Add new comment (cannot delete original)..." id="newComment_${recordId}" class="new-comment"></textarea>
+          <textarea rows="2" placeholder="Add new comment (cannot delete original)..." id="newComment_${recordId}" class="new-comment" disabled></textarea>
         </div>
       `;
-
-      // Create drop-down for Request Type using updated options
-      let requestTypeSelect = `<select id="requestTypeSelect_${recordId}">`;
+      // Request Type drop-down.
+      let requestTypeSelect = `<select id="requestTypeSelect_${recordId}" disabled>`;
       requestTypeOptions.forEach(opt => {
         requestTypeSelect += `<option value="${opt}" ${opt === requestType ? 'selected' : ''}>${opt}</option>`;
       });
       requestTypeSelect += `</select>`;
       row.querySelector('.requestType').innerHTML = requestTypeSelect;
-
-      // Create drop-down for Employee with a default blank option.
-      let employeeSelect = `<select id="employeeSelect_${recordId}"><option value="">Select Employee</option>`;
+      // Employee drop-down for record update.
+      let employeeSelect = `<select id="employeeSelect_${recordId}" disabled><option value="">Select Employee</option>`;
       employeeOptions.forEach(opt => {
         employeeSelect += `<option value="${opt}" ${opt === employee ? 'selected' : ''}>${opt}</option>`;
       });
       employeeSelect += `</select>`;
       row.querySelector('.employee').innerHTML = employeeSelect;
-
-      // Timestamp remains uneditable
+      // Timestamp remains uneditable.
       row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
 
-      // Get elements for Customer Name and Unlock Code
-      const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
+      // Get references.
+      const editorSelect = document.getElementById(`editorSelect_${recordId}`);
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const unlockInput = document.getElementById(`unlockCode_${recordId}`);
+      const newCommentArea = document.getElementById(`newComment_${recordId}`);
+      const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
+      const employeeSelectField = document.getElementById(`employeeSelect_${recordId}`);
 
-      // When the request type changes, show/hide the Unlock Code input if needed.
+      // Initially, fields remain disabled until an editor is chosen.
+      editorSelect.addEventListener('change', function() {
+        if (editorSelect.value !== "") {
+          // Enable all fields (except customerInput remains locked until proper unlock code).
+          newCommentArea.disabled = false;
+          requestSelect.disabled = false;
+          employeeSelectField.disabled = false;
+          // Also, check if request type requires unlock.
+          if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order") {
+            unlockInput.style.display = 'block';
+            unlockInput.placeholder = requestSelect.value === "Awaiting Order" ? "Enter code for Awaiting Order" : "Enter code for On Order";
+          } else {
+            unlockInput.style.display = 'none';
+            unlockInput.value = "";
+            customerInput.disabled = true;
+          }
+        } else {
+          // If no editor selected, keep fields disabled.
+          newCommentArea.disabled = true;
+          requestSelect.disabled = true;
+          employeeSelectField.disabled = true;
+        }
+      });
+
+      // When the request type changes, update the unlock code field accordingly.
       requestSelect.addEventListener('change', function() {
         if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order") {
           unlockInput.style.display = 'block';
@@ -318,7 +347,7 @@
         }
       });
 
-      // Unlock Customer Name input when correct code is entered.
+      // Unlock Customer Name if the correct code is entered.
       unlockInput.addEventListener('input', function() {
         if (requestSelect.value === "Awaiting Order" && unlockInput.value === "216521") {
           customerInput.disabled = false;
@@ -329,7 +358,7 @@
         }
       });
 
-      // Replace actions with Save and Cancel buttons
+      // Replace the actions with Save and Cancel buttons.
       const actionsCell = row.querySelector('td:last-child');
       actionsCell.innerHTML = `
         <button class="save-btn" onclick="saveRow(this, '${recordId}')">Save</button>
@@ -337,61 +366,56 @@
       `;
     }
 
-    // Cancel editing by reloading the records
+    // Cancel editing by reloading records.
     function cancelEdit(button) {
       loadRecords();
     }
 
-    // Save the edited row using a PUT request
+    // Save the edited row via PUT.
     function saveRow(button, recordId) {
       const row = button.closest('tr');
-
-      // Get updated values
       const newComment = document.getElementById(`newComment_${recordId}`).value.trim();
       const originalNotes = row.dataset.originalNotes || "";
       let updatedNotes = originalNotes;
-      
-      // Append new comment if provided
       if (newComment) {
         const now = new Date();
         updatedNotes += `\n\n-----\nComment added on ${now.toLocaleString()}:\n${newComment}`;
       }
-      
-      const updatedRequestType = row.querySelector('.requestType select').value;
+      const updatedRequestType = document.getElementById(`requestTypeSelect_${recordId}`).value;
       const updatedEmployee = document.getElementById(`employeeSelect_${recordId}`).value;
-      
-      // Ensure an employee is selected.
       if (!updatedEmployee) {
         alert("Please select a staff member from the Employee drop-down.");
         return;
       }
-      
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const updatedCustomer = customerInput.value;
-
-      // For Awaiting Order or On Order, ensure the unlock code was correctly entered.
+      // Get the editor's identity from the "Who are you?" select.
+      const editor = document.getElementById(`editorSelect_${recordId}`).value;
+      if (!editor) {
+        alert("Please select who you are before saving.");
+        return;
+      }
       const unlockCodeValue = document.getElementById(`unlockCode_${recordId}`).value;
       if ((updatedRequestType === "Awaiting Order" && unlockCodeValue !== "216521") ||
           (updatedRequestType === "On Order" && unlockCodeValue !== "191221")) {
         alert("Correct unlock code is required to update the Customer Name for this Request Type.");
         return;
       }
-      
-      // Build a log entry if Request Type or Employee has changed
+
+      // Build change log entries if Request Type or Employee has changed.
       const originalRequestType = row.dataset.originalRequestType;
       const originalEmployee = row.dataset.originalEmployee;
       let changeLog = "";
       if (updatedRequestType !== originalRequestType) {
-        changeLog += `\nStatus changed from "${originalRequestType}" to "${updatedRequestType}" by ${updatedEmployee} on ${new Date().toLocaleString()}.`;
+        changeLog += `\nStatus changed from "${originalRequestType}" to "${updatedRequestType}" by ${editor} on ${new Date().toLocaleString()}.`;
       }
       if (updatedEmployee !== originalEmployee) {
-        changeLog += `\nEmployee changed from "${originalEmployee}" to "${updatedEmployee}" by ${updatedEmployee} on ${new Date().toLocaleString()}.`;
+        changeLog += `\nEmployee changed from "${originalEmployee}" to "${updatedEmployee}" by ${editor} on ${new Date().toLocaleString()}.`;
       }
       if (changeLog) {
         updatedNotes += `\n\n-----\n${changeLog}`;
       }
 
-      // Prepare updated data.
       const updatedData = {
         sheet1: {
           title: updatedCustomer,
@@ -402,12 +426,9 @@
         }
       };
 
-      // PUT request to update the record
       fetch(`${apiUrl}/${recordId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData)
       })
       .then(response => {
@@ -418,7 +439,7 @@
       })
       .then(json => {
         console.log('Updated record:', json.sheet1);
-        loadRecords(); // Reload records after update
+        loadRecords();
       })
       .catch(error => {
         console.error('Error updating record:', error);
@@ -426,7 +447,6 @@
       });
     }
 
-    // Load records when the page loads
     document.addEventListener('DOMContentLoaded', loadRecords);
   </script>
 </body>
