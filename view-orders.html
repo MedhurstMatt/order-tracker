@@ -1,88 +1,135 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>View All Orders</title>
+  <title>Medhurst Kitchen Equipment - Manage Requests</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
-      margin: 20px;
-      color: #333;
+      background-color: #f5f5f5;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 20px;
     }
     h1 {
       text-align: center;
-      color: #2c3e50;
+      margin-bottom: 20px;
+      color: #333;
     }
     table {
-      width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      width: 100%;
+      margin-bottom: 20px;
     }
     th, td {
+      border: 1px solid #ddd;
       padding: 10px;
-      border: 1px solid #ccc;
       text-align: left;
     }
     th {
-      background: #eee;
+      background-color: #333;
+      color: #fff;
+    }
+    tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    input[type="text"],
+    textarea {
+      width: 95%;
+      padding: 6px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    button {
+      padding: 6px 12px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .edit-btn {
+      background-color: #007BFF;
+      color: #fff;
+    }
+    .save-btn {
+      background-color: #28a745;
+      color: #fff;
+    }
+    .cancel-btn {
+      background-color: #dc3545;
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  <h1>All Orders</h1>
-  <table id="ordersTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Title</th>
-        <th>Notes</th>
-        <th>Status</th>
-        <th>Employee</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Orders will be inserted here -->
-    </tbody>
-  </table>
+  <h1>Manage Medhurst Requests</h1>
+  <div id="recordsContainer"></div>
+
   <script>
-    // Your Sheety endpoint URL
-    const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1';
+    const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
-    async function loadOrders() {
-      try {
-        const response = await fetch(sheetyUrl);
-        const data = await response.json();
-        // Assuming the orders are returned in the property "sheet1"
-        const orders = data.sheet1;
-        renderOrders(orders);
-      } catch (error) {
-        console.error('Error loading orders:', error);
-      }
+    // Function to load records from Sheety
+    function loadRecords() {
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          renderTable(data.sheet1);
+        })
+        .catch(error => {
+          console.error('Error fetching records:', error);
+          document.getElementById('recordsContainer').innerText = 'Error loading records.';
+        });
     }
 
-    function renderOrders(orders) {
-      const tbody = document.querySelector('#ordersTable tbody');
-      tbody.innerHTML = '';
-      orders.forEach(order => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${order.id}</td>
-          <td>${order.title}</td>
-          <td>${order.notes || ""}</td>
-          <td>${order.status}</td>
-          <td>${order.employee || ""}</td>
-          <td>${order.timestamp || ""}</td>
-        `;
-        tbody.appendChild(tr);
+    // Render records in a table
+    function renderTable(records) {
+      let html = '<table>';
+      html += '<thead><tr>';
+      html += '<th>Invoice Number</th>';
+      html += '<th>Customer Name</th>';
+      html += '<th>Notes</th>';
+      html += '<th>Request Type</th>';
+      html += '<th>Employee</th>';
+      html += '<th>Timestamp</th>';
+      html += '<th>Actions</th>';
+      html += '</tr></thead>';
+      html += '<tbody>';
+      records.forEach(record => {
+        html += `<tr data-record-id="${record.id}">
+          <td class="invoice">${record.id}</td>
+          <td class="customer">${record.title}</td>
+          <td class="notes">${record.notes}</td>
+          <td class="requestType">${record.status}</td>
+          <td class="employee">${record.employee}</td>
+          <td class="timestamp">${record.timestamp}</td>
+          <td>
+            <button class="edit-btn" onclick="editRow(this)">Edit</button>
+          </td>
+        </tr>`;
       });
+      html += '</tbody></table>';
+      document.getElementById('recordsContainer').innerHTML = html;
     }
 
-    // Load orders when the page is loaded
-    window.addEventListener('load', loadOrders);
-  </script>
-</body>
-</html>
+    // Turn a row into editable fields
+    function editRow(button) {
+      const row = button.closest('tr');
+      const recordId = row.getAttribute('data-record-id');
+
+      // Get current values
+      const invoice = row.querySelector('.invoice').innerText;
+      const customer = row.querySelector('.customer').innerText;
+      const notes = row.querySelector('.notes').innerText;
+      const requestType = row.querySelector('.requestType').innerText;
+      const employee = row.querySelector('.employee').innerText;
+      const timestamp = row.querySelector('.timestamp').innerText;
+
+      // Replace cells with input fields (keeping invoice number and timestamp disabled)
+      row.querySelector('.invoice').innerHTML = `<input type="text" value="${invoice}" disabled />`;
+      row.querySelector('.customer').innerHTML = `<input type="text" value="${customer}" />`;
+      row.querySelector('.notes').innerHTML = `<textarea rows="2">${notes}</textarea>`;
+      row.querySelector('.requestType').innerHTML = `<input type="tex
