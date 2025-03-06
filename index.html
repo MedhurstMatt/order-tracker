@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sheety POST Test</title>
+  <title>Sheety POST Test - News Sheet</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #FFF;         /* White background */
+      background-color: #FFF;   /* White background */
       color: #000;              /* Black text */
       margin: 20px;
       padding: 20px;
@@ -35,28 +35,29 @@
   </style>
 </head>
 <body>
-  <h1>Sheety POST Test</h1>
+  <h1>Sheety POST Test - News Sheet</h1>
   <button onclick="testSheetyPost()">Test Sheety POST</button>
   <div id="statusMessage">Click the button to add a record to Sheety.</div>
 
   <script>
-    // Replace with your Sheety endpoint URL
-    const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1';
+    // Your updated Sheety endpoint URL
+    const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
     function testSheetyPost() {
       document.getElementById("statusMessage").textContent = "Sending data to Sheety...";
 
-      // Create sample order data using current time for a unique id and timestamp
-      const sampleOrder = {
-        id: Date.now(), // Unique id generated from current time
-        title: "Sample Order",
-        notes: "This is a sample order sent via Sheety POST.",
+      // Create a sample record with a unique id and current timestamp
+      const sampleRecord = {
+        id: Date.now(),  // Unique id from the current time
+        title: "Sample News Order",
+        notes: "This is a sample record added via POST to the News sheet.",
         status: "to be ordered",
         employee: "Test Employee",
-        timestamp: new Date().toISOString() // Current timestamp
+        timestamp: new Date().toISOString()
       };
 
-      const body = { sheet1: sampleOrder };
+      // Build the POST payload
+      const body = { sheet1: sampleRecord };
 
       fetch(sheetyUrl, {
         method: 'POST',
