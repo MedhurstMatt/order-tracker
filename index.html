@@ -8,9 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     /* Reset and base styles */
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Roboto', sans-serif;
@@ -93,6 +91,14 @@
       font-size: 0.85rem;
       margin-top: auto;
     }
+    /* Additional styling for the passcode field */
+    #passcodeContainer {
+      display: none;
+      margin-bottom: 12px;
+    }
+    #passcodeContainer input {
+      border-color: #FF8C00;
+    }
   </style>
 </head>
 <body>
@@ -100,9 +106,15 @@
   <div class="container">
     <h2>Medhurst Request Form</h2>
     <form id="requestForm">
-      <!-- Customer Name (mapped to title) -->
-      <label for="title">Customer Name</label>
-      <input type="text" id="title" name="title" placeholder="Enter customer name" required>
+      <!-- Customer Name and Invoice -->
+      <label for="title">Customer Name and Invoice</label>
+      <input type="text" id="title" name="title" placeholder="Enter customer name and invoice" required>
+      
+      <!-- Passcode container (hidden by default) -->
+      <div id="passcodeContainer">
+        <label for="passcode">Passcode</label>
+        <input type="text" id="passcode" name="passcode" placeholder="Enter passcode">
+      </div>
       
       <!-- Notes -->
       <label for="notes">Notes</label>
@@ -144,22 +156,61 @@
         <option value="Toby McShane">Toby McShane</option>
       </select>
       
-      <!-- Hidden ID and Timestamp will be added automatically -->
       <input type="submit" value="Submit Request">
     </form>
   </div>
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
+    // When the request type changes, check if a passcode is required.
+    const statusSelect = document.getElementById('status');
+    const passcodeContainer = document.getElementById('passcodeContainer');
+    const titleInput = document.getElementById('title');
+    const passcodeInput = document.getElementById('passcode');
+
+    function checkPasscodeRequirement() {
+      const rt = statusSelect.value;
+      // For these request types, a passcode is required.
+      if (rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") {
+        passcodeContainer.style.display = 'block';
+        titleInput.disabled = true;
+      } else {
+        passcodeContainer.style.display = 'none';
+        passcodeInput.value = "";
+        titleInput.disabled = false;
+      }
+    }
+
+    statusSelect.addEventListener('change', checkPasscodeRequirement);
+
+    // When passcode is entered, enable the title if correct.
+    passcodeInput.addEventListener('input', function() {
+      const rt = statusSelect.value;
+      const code = passcodeInput.value;
+      if ((rt === "Awaiting Order" && code === "216521") ||
+          (rt === "On Order" && code === "191221") ||
+          (rt === "Moved to Delivery" && code === "201896")) {
+        titleInput.disabled = false;
+      } else {
+        titleInput.disabled = true;
+      }
+    });
+
+    // Form submission.
     document.getElementById('requestForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      
-      // Build the data object. We don't send an ID since it's generated.
+      // If passcode is required, ensure the title is enabled (meaning passcode is correct).
+      const rt = statusSelect.value;
+      if ((rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") && titleInput.disabled) {
+        alert("Please enter the correct passcode to unlock the Customer Name and Invoice field.");
+        return;
+      }
+
       const requestData = {
         sheet1: {
-          title: document.getElementById('title').value,
+          title: titleInput.value,
           notes: document.getElementById('notes').value,
-          status: document.getElementById('status').value,
+          status: rt,
           employee: document.getElementById('employee').value,
           timestamp: new Date().toISOString()
         }
@@ -167,20 +218,19 @@
 
       fetch('https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData)
       })
       .then(response => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
+        if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
       })
       .then(data => {
         alert("Request submitted successfully!");
         document.getElementById('requestForm').reset();
+        // Reset the passcode container state.
+        passcodeContainer.style.display = 'none';
+        titleInput.disabled = false;
       })
       .catch(error => {
         alert("Error: " + error.message);
