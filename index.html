@@ -1,43 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Order Tracker with Sheety</title>
+  <title>Order Tracker</title>
   <style>
+    /* Body: white background, black text */
     body {
+      background-color: #FFFFFF;
+      color: #000;
       font-family: Arial, sans-serif;
-      background: #f7f7f7;
       margin: 0;
       padding: 20px;
-      color: #333;
     }
-    h1, h2 {
-      color: #2c3e50;
-    }
-    .section {
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
+    h1 {
+      text-align: center;
       margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    input, textarea, select, button {
-      padding: 8px;
-      margin: 5px 0;
-      font-size: 14px;
+    /* Form container: white with orange border */
+    .form-container {
+      background-color: #FFF;
+      border: 3px solid #FFA500; /* Orange border */
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 500px;
+      margin: 0 auto 30px auto;
+    }
+    /* Input styles */
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    textarea,
+    select {
       width: 100%;
-      box-sizing: border-box;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    textarea {
+      resize: vertical;
     }
     button {
-      background: #3498db;
-      color: #fff;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #FFA500;
       border: none;
+      color: #000;
+      font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
-      transition: background 0.3s ease;
     }
     button:hover {
-      background: #2980b9;
+      background-color: #e69500;
+    }
+    /* Orders table */
+    .orders-container {
+      max-width: 800px;
+      margin: 0 auto;
     }
     table {
       width: 100%;
@@ -50,44 +73,27 @@
       text-align: left;
     }
     th {
-      background: #eee;
+      background-color: #FFA500;
+      color: #000;
     }
   </style>
 </head>
 <body>
   <h1>Order Tracker</h1>
 
-  <!-- Staff Login Section -->
-  <div class="section">
-    <h2>Staff Login</h2>
-    <select id="employeeSelect">
-      <option value="">Select Employee</option>
-      <option value="Allan Bakker">Allan Bakker</option>
-      <option value="Anne McShane">Anne McShane</option>
-      <option value="Cathy Mayne">Cathy Mayne</option>
-      <option value="Colin Chung">Colin Chung</option>
-      <option value="Elaine Killalea">Elaine Killalea</option>
-      <option value="Fergus McShane">Fergus McShane</option>
-      <option value="Garry Williams">Garry Williams</option>
-      <option value="Hamish Killalea">Hamish Killalea</option>
-      <option value="Matthew Tonks">Matthew Tonks</option>
-      <option value="Matthew Tracey">Matthew Tracey</option>
-      <option value="Paul Tickner">Paul Tickner</option>
-      <option value="Richard Medhurst">Richard Medhurst</option>
-      <option value="Toby McShane">Toby McShane</option>
-    </select>
-    <button id="setEmployeeBtn">Set Employee</button>
-    <p id="loggedEmployee"></p>
-  </div>
-
-  <!-- New Order Form -->
-  <div class="section">
+  <!-- Form Container -->
+  <div class="form-container">
     <h2>Add New Order</h2>
     <form id="orderForm">
+      <!-- Order Title -->
       <label for="orderTitle">Order Title:</label>
       <input type="text" id="orderTitle" required>
+      
+      <!-- Order Notes -->
       <label for="orderNotes">Notes:</label>
-      <textarea id="orderNotes"></textarea>
+      <textarea id="orderNotes" rows="3"></textarea>
+      
+      <!-- Order Status -->
       <label for="orderStatus">Order Status:</label>
       <select id="orderStatus">
         <option value="to be ordered">to be ordered</option>
@@ -100,12 +106,32 @@
         <option value="completed">completed</option>
         <option value="canceled">canceled</option>
       </select>
+      
+      <!-- Employee (Staff) -->
+      <label for="employeeSelect">Employee:</label>
+      <select id="employeeSelect">
+        <option value="">Select Employee</option>
+        <option value="Allan Bakker">Allan Bakker</option>
+        <option value="Anne McShane">Anne McShane</option>
+        <option value="Cathy Mayne">Cathy Mayne</option>
+        <option value="Colin Chung">Colin Chung</option>
+        <option value="Elaine Killalea">Elaine Killalea</option>
+        <option value="Fergus McShane">Fergus McShane</option>
+        <option value="Garry Williams">Garry Williams</option>
+        <option value="Hamish Killalea">Hamish Killalea</option>
+        <option value="Matthew Tonks">Matthew Tonks</option>
+        <option value="Matthew Tracey">Matthew Tracey</option>
+        <option value="Paul Tickner">Paul Tickner</option>
+        <option value="Richard Medhurst">Richard Medhurst</option>
+        <option value="Toby McShane">Toby McShane</option>
+      </select>
+      
       <button type="submit">Add Order</button>
     </form>
   </div>
 
   <!-- Orders Table -->
-  <div class="section">
+  <div class="orders-container">
     <h2>All Orders</h2>
     <table id="ordersTable">
       <thead>
@@ -119,50 +145,26 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Orders will be inserted here -->
+        <!-- Orders will appear here -->
       </tbody>
     </table>
   </div>
 
   <script>
-    // Your Sheety endpoint URL
+    // Sheety endpoint URL
     const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1';
 
-    let currentEmployee = "";
-    // List of allowed statuses in the order they run in:
+    // Array for allowed statuses in the defined order
     const statuses = ["to be ordered", "awaiting order", "on order", "store pick up", "warehouse pick up", "delivery request", "freight forward", "completed", "canceled"];
+    
     let orders = [];
 
-    // Staff Login: set employee from drop-down list
-    document.getElementById("setEmployeeBtn").addEventListener("click", () => {
-      const employeeSelect = document.getElementById("employeeSelect");
-      if (employeeSelect.value !== "") {
-        currentEmployee = employeeSelect.value;
-        localStorage.setItem("employeeName", currentEmployee);
-        updateEmployeeDisplay();
-      } else {
-        alert("Please select an employee.");
-      }
-    });
-
-    function updateEmployeeDisplay() {
-      document.getElementById("loggedEmployee").textContent = "Logged in as: " + (currentEmployee || "None");
-    }
-
-    // On page load, restore employee and load orders
-    window.addEventListener("load", () => {
-      const storedEmployee = localStorage.getItem("employeeName");
-      if (storedEmployee) currentEmployee = storedEmployee;
-      updateEmployeeDisplay();
-      loadOrders();
-    });
-
-    // Load orders from the Google Sheet via Sheety (GET request)
+    // Function to load orders from the Sheet via GET
     async function loadOrders() {
       try {
         const response = await fetch(sheetyUrl);
         const data = await response.json();
-        // Assuming the orders are returned in property "sheet1"
+        // Assuming the data is in property "sheet1"
         orders = data.sheet1;
         renderOrders();
       } catch (error) {
@@ -170,10 +172,11 @@
       }
     }
 
-    // Render orders in the table
+    // Function to render orders in the table
     function renderOrders() {
       const tbody = document.getElementById("ordersTable").querySelector("tbody");
       tbody.innerHTML = "";
+      if (!orders) return;
       orders.forEach(order => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -188,41 +191,58 @@
       });
     }
 
-    // Add new order using POST request
+    // Form submission event to add a new order via POST
     document.getElementById("orderForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!currentEmployee) {
-        alert("Please set your employee from the list first.");
+
+      // Ensure an employee is selected
+      const employeeSelect = document.getElementById("employeeSelect");
+      const selectedEmployee = employeeSelect.value;
+      if (!selectedEmployee) {
+        alert("Please select an employee.");
         return;
       }
+
       const title = document.getElementById("orderTitle").value;
       const notes = document.getElementById("orderNotes").value;
-      // Get the selected status from the new order form
       const selectedStatus = document.getElementById("orderStatus").value;
-      // Generate a unique id using the current time
+
+      // Generate a unique id using current time and a timestamp
       const id = Date.now();
+      const timestamp = new Date().toISOString();
+
+      // Build the new order object
       const newOrder = {
         id: id,
         title: title,
         notes: notes,
         status: selectedStatus,
-        employee: currentEmployee,
-        timestamp: new Date().toISOString()
+        employee: selectedEmployee,
+        timestamp: timestamp
       };
+
+      // Build the POST payload using your provided format
       let body = { sheet1: newOrder };
-      fetch(sheetyUrl, {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      })
-      .then(response => response.json())
-      .then(json => {
-        console.log("Order added:", json.sheet1);
+
+      // POST the new order to Sheety
+      try {
+        const response = await fetch(sheetyUrl, {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        const result = await response.json();
+        console.log("Order added:", result.sheet1);
+        // Reset the form and reload orders
         document.getElementById("orderForm").reset();
         loadOrders();
-      })
-      .catch(error => console.error("Error adding order:", error));
+      } catch (error) {
+        console.error("Error adding order:", error);
+      }
     });
+
+    // Load orders on page load
+    window.addEventListener("load", loadOrders);
   </script>
 </body>
 </html>
