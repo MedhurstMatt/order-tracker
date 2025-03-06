@@ -184,10 +184,12 @@
       html += '</tr></thead>';
       html += '<tbody>';
       records.forEach(record => {
+        // Show invoice number from either record.id or record.invoice
+        let invoiceNumber = record.id || record.invoice || '';
         // Do not allow editing if status is Completed or Canceled
         const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
         html += `<tr data-record-id="${record.id}">
-          <td class="invoice">${record.id}</td>
+          <td class="invoice">${invoiceNumber}</td>
           <td class="customer">${record.title}</td>
           <td class="notes">${record.notes}</td>
           <td class="requestType">${record.status}</td>
@@ -270,12 +272,11 @@
         } else {
           unlockInput.style.display = 'none';
           unlockInput.value = "";
-          // For other request types, Customer Name remains locked.
           customerInput.disabled = true;
         }
       });
 
-      // Add event listener to the Unlock Code input to unlock Customer Name if the correct code is entered.
+      // Unlock Customer Name input when correct code is entered.
       unlockInput.addEventListener('input', function() {
         if (requestSelect.value === "Awaiting Order" && unlockInput.value === "216521") {
           customerInput.disabled = false;
@@ -308,7 +309,7 @@
       const originalNotes = row.dataset.originalNotes || "";
       let updatedNotes = originalNotes;
       
-      // If a new comment is provided, append it with a separator and a timestamp.
+      // Append new comment if provided
       if (newComment) {
         const now = new Date();
         updatedNotes += `\n\n-----\nComment added on ${now.toLocaleString()}:\n${newComment}`;
@@ -330,12 +331,11 @@
       // Prepare updated data.
       const updatedData = {
         sheet1: {
-          // Customer Name is updated only if unlocked.
           title: updatedCustomer,
           notes: updatedNotes,
           status: updatedRequestType,
           employee: updatedEmployee,
-          timestamp: new Date().toISOString()  // update timestamp to current time
+          timestamp: new Date().toISOString()
         }
       };
 
