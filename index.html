@@ -36,6 +36,9 @@
       border-radius: 4px;
       box-sizing: border-box;
     }
+    input[readonly] {
+      background-color: #f9f9f9;
+    }
     input[type="submit"] {
       background-color: black;
       color: white;
@@ -60,17 +63,17 @@
   <div class="container">
     <h2>Submit Order</h2>
     <form id="orderForm">
-      <label for="invoice_number">Invoice Number</label>
-      <input type="text" id="invoice_number" name="invoice_number" required>
+      <label for="id">Invoice Number</label>
+      <input type="text" id="id" name="id" required>
       
-      <label for="customer_name">Customer Name</label>
-      <input type="text" id="customer_name" name="customer_name" required>
+      <label for="title">Customer Name</label>
+      <input type="text" id="title" name="title" required>
       
-      <label for="order_notes">Order Notes</label>
-      <textarea id="order_notes" name="order_notes" rows="3" required></textarea>
+      <label for="notes">Order Notes</label>
+      <textarea id="notes" name="notes" rows="3" required></textarea>
       
-      <label for="directory_path">Directory Path</label>
-      <select id="directory_path" name="directory_path" required>
+      <label for="status">Directory Path</label>
+      <select id="status" name="status" required>
         <option value="to be ordered">to be ordered</option>
         <option value="awaiting order">awaiting order</option>
         <option value="on order">on order</option>
@@ -99,41 +102,47 @@
         <option value="Toby McShane">Toby McShane</option>
       </select>
       
+      <label for="timestamp">Timestamp (auto-filled)</label>
+      <input type="text" id="timestamp" name="timestamp" readonly>
+      
       <input type="submit" value="Submit Order">
     </form>
     <div id="responseMessage"></div>
   </div>
 
   <script>
-    // When the form is submitted, capture the timestamp and client IP, then submit the data
-    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+    // Function to fetch client IP and set the timestamp field
+    function setTimestamp() {
+      // Get the current timestamp from the client computer
+      const now = new Date().toISOString();
+      // Fetch the public IP address from an external API
+      fetch('https://api.ipify.org?format=json')
+        .then(response => response.json())
+        .then(data => {
+          const ip = data.ip;
+          document.getElementById('timestamp').value = now + " | " + ip;
+        })
+        .catch(error => {
+          console.error("Error fetching IP:", error);
+          document.getElementById('timestamp').value = now + " | " + "IP not available";
+        });
+    }
+
+    // Set the timestamp as soon as the page loads
+    window.addEventListener('DOMContentLoaded', setTimestamp);
+
+    // Form submission handler
+    document.getElementById('orderForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Get the current timestamp
-      const timestamp = new Date().toISOString();
-      
-      // Retrieve the visitor's IP address using an external API
-      let ip = '';
-      try {
-        const ipResponse = await fetch('https://api.ipify.org?format=json');
-        const ipData = await ipResponse.json();
-        ip = ipData.ip;
-      } catch (error) {
-        ip = 'IP not available';
-      }
-      
-      // Combine timestamp and IP address
-      const fullTimestamp = `${timestamp} ${ip}`;
-      
-      // Create the data object with updated field names
       const orderData = {
         sheet1: {
-          invoice_number: document.getElementById('invoice_number').value,
-          customer_name: document.getElementById('customer_name').value,
-          order_notes: document.getElementById('order_notes').value,
-          directory_path: document.getElementById('directory_path').value,
+          id: document.getElementById('id').value,
+          title: document.getElementById('title').value,
+          notes: document.getElementById('notes').value,
+          status: document.getElementById('status').value,
           employee: document.getElementById('employee').value,
-          timestamp: fullTimestamp
+          timestamp: document.getElementById('timestamp').value
         }
       };
 
@@ -153,6 +162,8 @@
       .then(data => {
         document.getElementById('responseMessage').innerText = 'Order submitted successfully!';
         document.getElementById('orderForm').reset();
+        // Re-set the timestamp after submission
+        setTimestamp();
       })
       .catch(error => {
         document.getElementById('responseMessage').innerText = 'Error: ' + error.message;
