@@ -114,10 +114,6 @@
     .new-comment {
       margin-top: 5px;
     }
-    /* Confirm Identity field styling */
-    .confirm-identity {
-      margin-top: 5px;
-    }
   </style>
 </head>
 <body>
@@ -269,15 +265,11 @@
       row.dataset.originalRequestType = requestType;
       row.dataset.originalEmployee = employee;
 
-      // Add a required Confirm Your Identity field (must be filled before saving)
-      const confirmIdentityHTML = `<input type="text" placeholder="Confirm Your Identity" id="confirmIdentity_${recordId}" class="confirm-identity" required />`;
-
       // For Customer Name and Invoice, create a container with the input and an Unlock Code field.
       row.querySelector('.customer').innerHTML = `
         <div>
           <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
           <br/><input type="text" placeholder="Unlock Code" id="unlockCode_${recordId}" class="unlock-code" />
-          <br/>${confirmIdentityHTML}
         </div>
       `;
 
@@ -377,13 +369,6 @@
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const updatedCustomer = customerInput.value;
 
-      // Retrieve the confirmed identity
-      const confirmedIdentity = document.getElementById(`confirmIdentity_${recordId}`).value.trim();
-      if (!confirmedIdentity) {
-        alert("Please confirm your identity before saving.");
-        return;
-      }
-      
       // For Awaiting Order or On Order, ensure the unlock code was correctly entered.
       const unlockCodeValue = document.getElementById(`unlockCode_${recordId}`).value;
       if ((updatedRequestType === "Awaiting Order" && unlockCodeValue !== "216521") ||
@@ -397,10 +382,10 @@
       const originalEmployee = row.dataset.originalEmployee;
       let changeLog = "";
       if (updatedRequestType !== originalRequestType) {
-        changeLog += `\nStatus changed from "${originalRequestType}" to "${updatedRequestType}" by ${confirmedIdentity} on ${new Date().toLocaleString()}.`;
+        changeLog += `\nStatus changed from "${originalRequestType}" to "${updatedRequestType}" by ${updatedEmployee} on ${new Date().toLocaleString()}.`;
       }
       if (updatedEmployee !== originalEmployee) {
-        changeLog += `\nEmployee changed from "${originalEmployee}" to "${updatedEmployee}" by ${confirmedIdentity} on ${new Date().toLocaleString()}.`;
+        changeLog += `\nEmployee changed from "${originalEmployee}" to "${updatedEmployee}" by ${updatedEmployee} on ${new Date().toLocaleString()}.`;
       }
       if (changeLog) {
         updatedNotes += `\n\n-----\n${changeLog}`;
