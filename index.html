@@ -30,7 +30,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
     /* Unobtrusive navigation link in top-right */
-    .nav-link {
+    .header a.nav-link {
       position: absolute;
       right: 15px;
       top: 50%;
@@ -43,9 +43,7 @@
       border-radius: 4px;
       transition: background 0.3s ease;
     }
-    .nav-link:hover {
-      background: rgba(224, 122, 0, 0.9);
-    }
+    .header a.nav-link:hover { background: rgba(224, 122, 0, 0.9); }
     .container {
       background: #fff;
       width: 95%;
@@ -87,7 +85,7 @@
       resize: vertical;
       min-height: 80px;
     }
-    /* Button container for mobile-friendly submit */
+    /* Button container for mobile-friendly spacing */
     .button-container {
       margin-top: 20px;
       text-align: center;
@@ -125,24 +123,39 @@
 <body>
   <div class="header">
     Medhurst Kitchen Equipment
+    <!-- Link to Manage Requests page -->
     <a href="https://medhurstmatt.github.io/order-tracker/view-orders.html" class="nav-link" target="_blank">Manage Requests</a>
   </div>
   <div class="container">
     <h2>Medhurst Request Form</h2>
-    <form id="requestForm">
+    <!-- 
+      Staticman form integration.
+      Replace <GITHUB_USERNAME>, <REPO>, <BRANCH>, and <PATH> accordingly.
+      In this example:
+      - GitHub Username: medhurstmatt
+      - Repository: order-tracker
+      - Branch: main
+      - Submissions stored in: data/submissions
+    -->
+    <form id="requestForm" action="https://api.staticman.net/v2/entry/medhurstmatt/order-tracker/main/data/submissions" method="POST">
+      
+      <!-- Required hidden fields for Staticman -->
+      <input type="hidden" name="options[redirect]" value="https://medhurstmatt.github.io/order-tracker/thank-you.html">
+      <input type="hidden" name="options[slug]" value="order-{{timestamp}}">
+      
       <!-- Customer Name and Invoice -->
       <label for="title">Customer Name and Invoice</label>
-      <input type="text" id="title" name="title" placeholder="Enter customer name and invoice" required>
+      <input type="text" id="title" name="fields[title]" placeholder="Enter customer name and invoice" required>
       
       <!-- Passcode container (hidden by default) -->
       <div id="passcodeContainer">
         <label for="passcode">Passcode</label>
-        <input type="text" id="passcode" name="passcode" placeholder="Enter passcode">
+        <input type="text" id="passcode" name="fields[passcode]" placeholder="Enter passcode">
       </div>
       
-      <!-- Request Type (now above Notes) -->
+      <!-- Request Type positioned above Notes -->
       <label for="status">Request Type</label>
-      <select id="status" name="status" required>
+      <select id="status" name="fields[status]" required>
         <option value="To Be Ordered">To Be Ordered</option>
         <option value="Awaiting Order">Awaiting Order</option>
         <option value="On Order">On Order</option>
@@ -157,13 +170,13 @@
         <option value="Canceled">Canceled</option>
       </select>
       
-      <!-- Notes (placed after Request Type) -->
+      <!-- Notes placed after Request Type -->
       <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" placeholder="Enter notes here..." required></textarea>
+      <textarea id="notes" name="fields[notes]" placeholder="Enter notes here..." required></textarea>
       
       <!-- Employee -->
       <label for="employee">Employee</label>
-      <select id="employee" name="employee" required>
+      <select id="employee" name="fields[employee]" required>
         <option value="">Select Employee</option>
         <option value="Allan Bakker">Allan Bakker</option>
         <option value="Anne McShane">Anne McShane</option>
@@ -180,7 +193,7 @@
         <option value="Toby McShane">Toby McShane</option>
       </select>
       
-      <!-- Button container -->
+      <!-- Button container for mobile-friendly submit -->
       <div class="button-container">
         <input type="submit" value="Submit Request">
       </div>
@@ -189,11 +202,13 @@
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
+    // Get references to elements for passcode functionality
     const statusSelect = document.getElementById('status');
     const passcodeContainer = document.getElementById('passcodeContainer');
     const titleInput = document.getElementById('title');
     const passcodeInput = document.getElementById('passcode');
 
+    // Check if the current request type requires a passcode.
     function checkPasscodeRequirement() {
       const rt = statusSelect.value;
       if (rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") {
@@ -208,6 +223,7 @@
 
     statusSelect.addEventListener('change', checkPasscodeRequirement);
 
+    // When passcode is entered, enable the Customer Name and Invoice field if correct.
     passcodeInput.addEventListener('input', function() {
       const rt = statusSelect.value;
       const code = passcodeInput.value;
@@ -218,42 +234,6 @@
       } else {
         titleInput.disabled = true;
       }
-    });
-
-    document.getElementById('requestForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const rt = statusSelect.value;
-      if ((rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") && titleInput.disabled) {
-        alert("Please enter the correct passcode to unlock the Customer Name and Invoice field.");
-        return;
-      }
-      const requestData = {
-        sheet1: {
-          title: titleInput.value,
-          notes: document.getElementById('notes').value,
-          status: rt,
-          employee: document.getElementById('employee').value,
-          timestamp: new Date().toISOString()
-        }
-      };
-      fetch('https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
-      })
-      .then(response => {
-        if (!response.ok) throw new Error("Network response was not ok");
-        return response.json();
-      })
-      .then(data => {
-        alert("Request submitted successfully!");
-        document.getElementById('requestForm').reset();
-        passcodeContainer.style.display = 'none';
-        titleInput.disabled = false;
-      })
-      .catch(error => {
-        alert("Error: " + error.message);
-      });
     });
   </script>
 </body>
