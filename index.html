@@ -4,28 +4,28 @@
   <meta charset="UTF-8">
   <title>Order Tracker</title>
   <style>
-    /* Body: white background, black text */
+    /* Overall page styling */
     body {
-      background-color: #FFFFFF;
-      color: #000;
+      background-color: #FFF;  /* White background */
+      color: #000;             /* Black text */
       font-family: Arial, sans-serif;
-      margin: 0;
+      margin: 20px;
       padding: 20px;
     }
     h1 {
       text-align: center;
       margin-bottom: 20px;
     }
-    /* Form container: white with orange border */
+    /* Form container styling */
     .form-container {
-      background-color: #FFF;
-      border: 3px solid #FFA500; /* Orange border */
+      background-color: #FFF;        /* White background */
+      border: 3px solid #FFA500;      /* Solid orange border (#FFA500) */
       border-radius: 8px;
       padding: 20px;
       max-width: 500px;
       margin: 0 auto 30px auto;
     }
-    /* Input styles */
+    /* Form elements */
     label {
       display: block;
       margin-top: 10px;
@@ -47,9 +47,9 @@
     button {
       margin-top: 15px;
       padding: 10px 20px;
-      background-color: #FFA500;
+      background-color: #FFA500;  /* Orange button */
       border: none;
-      color: #000;
+      color: #000;                /* Black text */
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
@@ -57,7 +57,7 @@
     button:hover {
       background-color: #e69500;
     }
-    /* Orders table */
+    /* Orders table styling */
     .orders-container {
       max-width: 800px;
       margin: 0 auto;
@@ -81,7 +81,7 @@
 <body>
   <h1>Order Tracker</h1>
 
-  <!-- Form Container -->
+  <!-- Form Container for Input -->
   <div class="form-container">
     <h2>Add New Order</h2>
     <form id="orderForm">
@@ -145,33 +145,34 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Orders will appear here -->
+        <!-- Orders will be displayed here -->
       </tbody>
     </table>
   </div>
 
   <script>
-    // Sheety endpoint URL
+    // Your Sheety endpoint URL
     const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1';
-
-    // Array for allowed statuses in the defined order
+    
+    // Array of allowed statuses in the desired order
     const statuses = ["to be ordered", "awaiting order", "on order", "store pick up", "warehouse pick up", "delivery request", "freight forward", "completed", "canceled"];
     
+    // Global orders array
     let orders = [];
-
-    // Function to load orders from the Sheet via GET
+    
+    // Function to load orders via GET request
     async function loadOrders() {
       try {
         const response = await fetch(sheetyUrl);
         const data = await response.json();
-        // Assuming the data is in property "sheet1"
+        // Assuming your data is in property "sheet1"
         orders = data.sheet1;
         renderOrders();
       } catch (error) {
         console.error("Error loading orders:", error);
       }
     }
-
+    
     // Function to render orders in the table
     function renderOrders() {
       const tbody = document.getElementById("ordersTable").querySelector("tbody");
@@ -190,58 +191,54 @@
         tbody.appendChild(tr);
       });
     }
-
-    // Form submission event to add a new order via POST
+    
+    // Form submission: add new order via POST
     document.getElementById("orderForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-
-      // Ensure an employee is selected
+      
+      // Check if employee is selected
       const employeeSelect = document.getElementById("employeeSelect");
-      const selectedEmployee = employeeSelect.value;
-      if (!selectedEmployee) {
+      if (!employeeSelect.value) {
         alert("Please select an employee.");
         return;
       }
-
+      
       const title = document.getElementById("orderTitle").value;
       const notes = document.getElementById("orderNotes").value;
       const selectedStatus = document.getElementById("orderStatus").value;
-
-      // Generate a unique id using current time and a timestamp
+      
+      // Generate unique id and timestamp
       const id = Date.now();
       const timestamp = new Date().toISOString();
-
+      
       // Build the new order object
       const newOrder = {
         id: id,
         title: title,
         notes: notes,
         status: selectedStatus,
-        employee: selectedEmployee,
+        employee: employeeSelect.value,
         timestamp: timestamp
       };
-
-      // Build the POST payload using your provided format
+      
+      // Build POST payload as required by Sheety
       let body = { sheet1: newOrder };
-
-      // POST the new order to Sheety
+      
+      // Send the POST request to Sheety
       try {
-        const response = await fetch(sheetyUrl, {
+        await fetch(sheetyUrl, {
           method: 'POST',
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body)
         });
-        const result = await response.json();
-        console.log("Order added:", result.sheet1);
-        // Reset the form and reload orders
         document.getElementById("orderForm").reset();
         loadOrders();
       } catch (error) {
         console.error("Error adding order:", error);
       }
     });
-
-    // Load orders on page load
+    
+    // Load orders when the page loads
     window.addEventListener("load", loadOrders);
   </script>
 </body>
