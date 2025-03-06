@@ -116,7 +116,7 @@
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Base API URL
+    // Base API URL (using the hidden "id" field for API calls)
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
     // Updated drop-down options for Request Type and Employee
@@ -170,12 +170,12 @@
         });
     }
 
-    // Render records in a table
+    // Render records in a table (do not display the internal "id")
     function renderTable(records) {
       let html = '<table>';
       html += '<thead><tr>';
-      html += '<th>Invoice Number</th>';
-      html += '<th>Customer Name</th>';
+      // Column header for Customer Name and Invoice (from title)
+      html += '<th>Customer Name and Invoice</th>';
       html += '<th>Notes</th>';
       html += '<th>Request Type</th>';
       html += '<th>Employee</th>';
@@ -184,12 +184,10 @@
       html += '</tr></thead>';
       html += '<tbody>';
       records.forEach(record => {
-        // Show invoice number from either record.id or record.invoice
-        let invoiceNumber = record.id || record.invoice || '';
-        // Do not allow editing if status is Completed or Canceled
+        // Do not display the id field on screen; use record.title for Customer Name and Invoice.
+        // Do not allow editing if status is Completed or Canceled.
         const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
         html += `<tr data-record-id="${record.id}">
-          <td class="invoice">${invoiceNumber}</td>
           <td class="customer">${record.title}</td>
           <td class="notes">${record.notes}</td>
           <td class="requestType">${record.status}</td>
@@ -213,7 +211,6 @@
       const recordId = row.getAttribute('data-record-id');
 
       // Get current values
-      const invoice = row.querySelector('.invoice').innerText;
       const customer = row.querySelector('.customer').innerText;
       const notes = row.querySelector('.notes').innerText;
       const requestType = row.querySelector('.requestType').innerText;
@@ -223,7 +220,7 @@
       // Store original notes to enforce that they aren't deleted.
       row.dataset.originalNotes = notes;
 
-      // For Customer Name, create a container with the input and an Unlock Code field.
+      // For Customer Name and Invoice, create a container with the input and an Unlock Code field.
       row.querySelector('.customer').innerHTML = `
         <div>
           <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
