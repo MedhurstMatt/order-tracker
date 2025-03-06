@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Stylish Order Tracker</title>
+  <title>Order Tracker with Supabase and Staff Login</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
   <style>
     body {
@@ -22,13 +22,13 @@
       background: #ddd;
       margin: 20px 0;
     }
-    input[type="text"], textarea, select {
+    input[type="text"], textarea, select { 
       width: 100%;
       padding: 8px;
       margin: 6px 0 12px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      box-sizing: border-box;
+      box-sizing: border-box; 
     }
     button {
       padding: 8px 16px;
@@ -57,6 +57,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 10px;
       background: white;
       border-radius: 8px;
       overflow: hidden;
@@ -71,14 +72,37 @@
       background-color: #f2f2f2;
     }
   </style>
+  <!-- Include Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Initialize Supabase with your credentials
+    const supabaseUrl = "https://mkuxuegawofzedmxhxhu.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdXh1ZWdhd29memVkbXhoeGh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzc2NjQsImV4cCI6MjA1NjgxMzY2NH0.MsnFEpPYJrD5-BO7W0csjwPog5heW4hH5Dz7ts2rKr4";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+  </script>
 </head>
 <body>
   <h1>Order Tracker</h1>
 
-  <!-- Employee Login Section -->
+  <!-- Employee Login Section with Staff List -->
   <div class="employee-login">
     <h2>Employee Login</h2>
-    <input type="text" id="employeeNameInput" placeholder="Enter your name">
+    <select id="employeeNameSelect">
+      <option value="">Select Employee</option>
+      <option value="Allan Bakker">Allan Bakker</option>
+      <option value="Anne McShane">Anne McShane</option>
+      <option value="Cathy Mayne">Cathy Mayne</option>
+      <option value="Colin Chung">Colin Chung</option>
+      <option value="Elaine Killalea">Elaine Killalea</option>
+      <option value="Fergus McShane">Fergus McShane</option>
+      <option value="Garry Williams">Garry Williams</option>
+      <option value="Hamish Killalea">Hamish Killalea</option>
+      <option value="Matthew Tonks">Matthew Tonks</option>
+      <option value="Matthew Tracey">Matthew Tracey</option>
+      <option value="Paul Tickner">Paul Tickner</option>
+      <option value="Richard Medhurst">Richard Medhurst</option>
+      <option value="Toby McShane">Toby McShane</option>
+    </select>
     <button id="setEmployeeBtn">Set Employee</button>
     <p id="loggedEmployee"></p>
   </div>
@@ -131,7 +155,7 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Orders will be dynamically inserted here -->
+        <!-- Orders will be inserted here -->
       </tbody>
     </table>
   </div>
@@ -140,14 +164,14 @@
     /*************** Employee Login Code ***************/
     let currentEmployee = "";
     function setEmployee() {
-      const empInput = document.getElementById("employeeNameInput");
-      if (empInput.value.trim() !== "") {
-        currentEmployee = empInput.value.trim();
+      const employeeSelect = document.getElementById("employeeNameSelect");
+      const selectedEmployee = employeeSelect.value;
+      if (selectedEmployee !== "") {
+        currentEmployee = selectedEmployee;
         localStorage.setItem("employeeName", currentEmployee);
         updateEmployeeDisplay();
-        empInput.value = "";
       } else {
-        alert("Please enter a valid employee name.");
+        alert("Please select a valid employee.");
       }
     }
     function updateEmployeeDisplay() {
@@ -155,10 +179,7 @@
     }
     document.getElementById("setEmployeeBtn").addEventListener("click", setEmployee);
 
-    /*************** Order Tracker Code ***************/
-    let orders = [];
-    let orderId = 0;
-    // Define statuses (note: "canceled" is only set via cancellation)
+    /*************** Order Tracker Code Using Supabase ***************/
     const statuses = [
       "to be ordered",
       "on order",
@@ -171,21 +192,22 @@
       "canceled"
     ];
 
-    // Render orders (with filtering) and show delete button with password control
+    let orders = [];
+
+    // Render orders from Supabase data
     function renderOrders() {
       const filter = document.getElementById("filterStatus").value;
       const tbody = document.getElementById("ordersTable").querySelector("tbody");
       tbody.innerHTML = "";
-      const filteredOrders = orders.filter(order => filter === "all" || order.status === filter);
-      filteredOrders.forEach(order => {
-        // Orders that are 'completed' or 'canceled' become read-only
+      orders.forEach(order => {
+        if (filter !== "all" && order.status !== filter) return;
         const isEditable = (order.status !== "completed" && order.status !== "canceled");
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${order.id}</td>
           <td>${order.title}</td>
           <td>
-            <textarea onchange="updateNotes(${order.id}, this.value)" ${isEditable ? "" : "disabled"}>${order.notes}</textarea>
+            <textarea onchange="updateNotes(${order.id}, this.value)" ${isEditable ? "" : "disabled"}>${order.notes || ""}</textarea>
           </td>
           <td>
             <select onchange="updateStatus(${order.id}, this.value)" ${isEditable ? "" : "disabled"}>
@@ -193,9 +215,9 @@
             </select>
           </td>
           <td>${order.employee || "N/A"}</td>
-          <td class="btn-group">
-            ${ isEditable ? `<button onclick="advanceStatus(${order.id})">Next Step</button>
-            <button onclick="cancelOrder(${order.id})">Cancel</button>` : "" }
+          <td>
+            ${isEditable ? `<button onclick="advanceStatus(${order.id})">Next Step</button>
+            <button onclick="cancelOrder(${order.id})">Cancel</button>` : ""}
             <button onclick="deleteOrder(${order.id})">Delete</button>
           </td>
         `;
@@ -203,79 +225,92 @@
       });
     }
 
-    function updateNotes(id, newNotes) {
-      orders = orders.map(order => {
-        if (order.id === id && order.status !== "completed" && order.status !== "canceled") {
-          order.notes = newNotes;
-        }
-        return order;
-      });
-      saveOrders();
-      renderOrders();
+    // Load orders from Supabase
+    async function loadOrders() {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .order("timestamp", { ascending: false });
+      if (error) {
+        console.error("Error loading orders:", error);
+      } else {
+        orders = data;
+        renderOrders();
+      }
     }
 
-    function updateStatus(id, newStatus) {
-      orders = orders.map(order => {
-        if (order.id === id && order.status !== "completed" && order.status !== "canceled") {
-          order.status = newStatus;
-        }
-        return order;
-      });
-      saveOrders();
-      renderOrders();
+    // Add a new order to Supabase
+    async function addOrder(order) {
+      const { data, error } = await supabase
+        .from("orders")
+        .insert(order);
+      if (error) {
+        console.error("Error adding order:", error);
+      } else {
+        loadOrders();
+      }
     }
 
-    function advanceStatus(id) {
-      orders = orders.map(order => {
-        if (order.id === id && order.status !== "completed" && order.status !== "canceled") {
-          let currentIndex = statuses.indexOf(order.status);
-          // Do not auto-advance into "canceled"; allow progression only up to "completed"
-          if (currentIndex >= 0 && currentIndex < statuses.indexOf("completed")) {
-            order.status = statuses[currentIndex + 1];
-          }
-        }
-        return order;
-      });
-      saveOrders();
-      renderOrders();
+    // Update order notes in Supabase
+    async function updateNotes(id, newNotes) {
+      const { error } = await supabase
+        .from("orders")
+        .update({ notes: newNotes })
+        .eq("id", id);
+      if (error) console.error("Error updating notes:", error);
+      else loadOrders();
     }
 
-    function cancelOrder(id) {
-      orders = orders.map(order => {
-        if (order.id === id && order.status !== "completed" && order.status !== "canceled") {
-          order.status = "canceled";
-        }
-        return order;
-      });
-      saveOrders();
-      renderOrders();
+    // Update order status in Supabase
+    async function updateStatus(id, newStatus) {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: newStatus })
+        .eq("id", id);
+      if (error) console.error("Error updating status:", error);
+      else loadOrders();
     }
 
-    // Delete function is password protected. The password is "216521".
-    function deleteOrder(id) {
+    // Advance order status to the next step
+    async function advanceStatus(id) {
+      const order = orders.find(o => o.id === id);
+      if (!order) return;
+      const currentIndex = statuses.indexOf(order.status);
+      if (currentIndex >= 0 && currentIndex < statuses.indexOf("completed")) {
+        const { error } = await supabase
+          .from("orders")
+          .update({ status: statuses[currentIndex + 1] })
+          .eq("id", id);
+        if (error) console.error("Error advancing status:", error);
+        else loadOrders();
+      }
+    }
+
+    // Cancel an order by setting its status to "canceled"
+    async function cancelOrder(id) {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "canceled" })
+        .eq("id", id);
+      if (error) console.error("Error canceling order:", error);
+      else loadOrders();
+    }
+
+    // Delete order with password protection (password: 216521)
+    async function deleteOrder(id) {
       const pwd = prompt("Enter delete password:");
-      if (pwd === null) return; // user cancelled
+      if (pwd === null) return;
       if (pwd !== "216521") {
         alert("Incorrect password. Deletion aborted.");
         return;
       }
       if (confirm("Are you sure you want to permanently delete this order?")) {
-        orders = orders.filter(order => order.id !== id);
-        saveOrders();
-        renderOrders();
-      }
-    }
-
-    function saveOrders() {
-      localStorage.setItem("orders", JSON.stringify(orders));
-    }
-
-    function loadOrders() {
-      if (localStorage.getItem("orders")) {
-        orders = JSON.parse(localStorage.getItem("orders"));
-        if (orders.length > 0) {
-          orderId = Math.max(...orders.map(o => o.id)) + 1;
-        }
+        const { error } = await supabase
+          .from("orders")
+          .delete()
+          .eq("id", id);
+        if (error) console.error("Error deleting order:", error);
+        else loadOrders();
       }
     }
 
@@ -283,35 +318,30 @@
     document.getElementById("orderForm").addEventListener("submit", function(e) {
       e.preventDefault();
       if (!currentEmployee) {
-        alert("Please set your employee name first.");
+        alert("Please set your employee from the list.");
         return;
       }
       const title = document.getElementById("title").value;
       const notes = document.getElementById("notes").value;
       const order = {
-        id: orderId++,
         title: title,
         notes: notes,
         status: statuses[0],  // "to be ordered"
-        employee: currentEmployee
+        employee: currentEmployee,
+        timestamp: new Date().toISOString()
       };
-      orders.push(order);
-      saveOrders();
-      renderOrders();
+      addOrder(order);
       this.reset();
     });
 
     document.getElementById("filterStatus").addEventListener("change", renderOrders);
 
-    // On page load, restore employee name and orders
+    // On page load, restore employee from localStorage and load orders
     window.addEventListener("load", function() {
       const storedEmployee = localStorage.getItem("employeeName");
-      if (storedEmployee) {
-        currentEmployee = storedEmployee;
-      }
+      if (storedEmployee) currentEmployee = storedEmployee;
       updateEmployeeDisplay();
       loadOrders();
-      renderOrders();
     });
   </script>
 </body>
