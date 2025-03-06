@@ -101,6 +101,10 @@
       display: none;
       margin-top: 5px;
     }
+    /* New Comment area styling */
+    .new-comment {
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -214,7 +218,7 @@
       const employee = row.querySelector('.employee').innerText;
       const timestamp = row.querySelector('.timestamp').innerText;
 
-      // Store original notes to enforce that they aren't removed.
+      // Store original notes to enforce that they aren't deleted.
       row.dataset.originalNotes = notes;
 
       // For Customer Name, create a container with the input and an Unlock Code field.
@@ -225,8 +229,13 @@
         </div>
       `;
 
-      // Notes field becomes a textarea
-      row.querySelector('.notes').innerHTML = `<textarea rows="2">${notes}</textarea>`;
+      // Instead of replacing Notes directly, show the original notes and add a "New Comment" area.
+      row.querySelector('.notes').innerHTML = `
+        <div>
+          <div style="white-space: pre-wrap;">${notes}</div>
+          <textarea rows="2" placeholder="Add new comment (cannot delete original)..." id="newComment_${recordId}" class="new-comment"></textarea>
+        </div>
+      `;
 
       // Create drop-down for Request Type using updated options
       let requestTypeSelect = `<select id="requestTypeSelect_${recordId}">`;
@@ -295,12 +304,14 @@
       const row = button.closest('tr');
 
       // Get updated values
-      const updatedNotes = row.querySelector('.notes textarea').value;
+      const newComment = document.getElementById(`newComment_${recordId}`).value.trim();
       const originalNotes = row.dataset.originalNotes || "";
-      // Ensure the updated notes still start with the original text.
-      if (!updatedNotes.startsWith(originalNotes)) {
-        alert("You cannot delete the original notes. Please keep the original text and add any additions after it.");
-        return;
+      let updatedNotes = originalNotes;
+      
+      // If a new comment is provided, append it with a separator and a timestamp.
+      if (newComment) {
+        const now = new Date();
+        updatedNotes += `\n\n-----\nComment added on ${now.toLocaleString()}:\n${newComment}`;
       }
       
       const updatedRequestType = row.querySelector('.requestType select').value;
@@ -309,13 +320,14 @@
       const updatedCustomer = customerInput.value;
 
       // For Awaiting Order or On Order, ensure the unlock code was correctly entered.
-      if ((updatedRequestType === "Awaiting Order" && document.getElementById(`unlockCode_${recordId}`).value !== "216521") ||
-          (updatedRequestType === "On Order" && document.getElementById(`unlockCode_${recordId}`).value !== "191221")) {
+      const unlockCodeValue = document.getElementById(`unlockCode_${recordId}`).value;
+      if ((updatedRequestType === "Awaiting Order" && unlockCodeValue !== "216521") ||
+          (updatedRequestType === "On Order" && unlockCodeValue !== "191221")) {
         alert("Correct unlock code is required to update the Customer Name for this Request Type.");
         return;
       }
 
-      // Prepare updated data. Note that the invoice number is not changed.
+      // Prepare updated data.
       const updatedData = {
         sheet1: {
           // Customer Name is updated only if unlocked.
