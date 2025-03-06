@@ -60,7 +60,7 @@
   <div class="container">
     <h2>Submit Order</h2>
     <form id="orderForm">
-      <label for="id">ID</label>
+      <label for="id">Invoice Number</label>
       <input type="text" id="id" name="id" required>
       
       <label for="title">Title</label>
@@ -99,9 +99,6 @@
         <option value="Toby McShane">Toby McShane</option>
       </select>
       
-      <label for="timestamp">Timestamp</label>
-      <input type="text" id="timestamp" name="timestamp" required>
-      
       <input type="submit" value="Submit Order">
     </form>
     <div id="responseMessage"></div>
@@ -111,6 +108,10 @@
     document.getElementById('orderForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
+      // Get the current timestamp in ISO format
+      const timestamp = new Date().toISOString();
+
+      // Create the data object with the timestamp automatically set
       const orderData = {
         sheet1: {
           id: document.getElementById('id').value,
@@ -118,7 +119,7 @@
           notes: document.getElementById('notes').value,
           status: document.getElementById('status').value,
           employee: document.getElementById('employee').value,
-          timestamp: document.getElementById('timestamp').value
+          timestamp: timestamp
         }
       };
 
