@@ -3,15 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <title>Medhurst Kitchen Equipment - Manage Requests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
-      background-color: #f5f5f5;
+      background-color: #FFA500; /* Orange background */
+      color: #333;
       font-family: 'Roboto', sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    h1 {
+    .header {
+      background-color: #333;
+      color: #fff;
+      padding: 15px 0;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 500;
+    }
+    .container {
+      background-color: #fff;
+      max-width: 95%;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      overflow-x: auto;
+    }
+    h2 {
       text-align: center;
       margin-bottom: 20px;
       color: #333;
@@ -19,12 +41,13 @@
     table {
       border-collapse: collapse;
       width: 100%;
-      margin-bottom: 20px;
+      min-width: 600px;
     }
     th, td {
       border: 1px solid #ddd;
       padding: 10px;
       text-align: left;
+      font-size: 14px;
     }
     th {
       background-color: #333;
@@ -63,22 +86,34 @@
       background-color: #dc3545;
       color: #fff;
     }
+    .footer {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 14px;
+      margin-top: auto;
+    }
   </style>
 </head>
 <body>
-  <h1>Manage Medhurst Requests</h1>
-  <div id="recordsContainer"></div>
+  <div class="header">Medhurst Kitchen Equipment</div>
+  <div class="container">
+    <h2>Manage Medhurst Requests</h2>
+    <div id="recordsContainer">Loading records...</div>
+  </div>
+  <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
     // Base API URL
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
-    // Load records from Sheety using GET
+    // Load records from Sheety using GET (example using json.sheet1S)
     function loadRecords() {
       fetch(apiUrl)
         .then(response => response.json())
         .then(json => {
-          // Use json.sheet1S based on your example
+          // Use json.sheet1S based on your provided example
           renderTable(json.sheet1S);
         })
         .catch(error => {
@@ -185,8 +220,7 @@
         return response.json();
       })
       .then(json => {
-        // Use json.sheet1 from the edit example
-        console.log(json.sheet1);
+        console.log('Updated record:', json.sheet1);
         loadRecords(); // Reload records after update
       })
       .catch(error => {
