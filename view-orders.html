@@ -108,17 +108,22 @@
     // Base API URL
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
-    // Load records from Sheety using GET (example using json.sheet1S)
+    // Load records from Sheety using GET
     function loadRecords() {
       fetch(apiUrl)
         .then(response => response.json())
         .then(json => {
-          // Use json.sheet1S based on your provided example
-          renderTable(json.sheet1S);
+          console.log("Fetched JSON:", json);
+          // Check for either sheet1S or sheet1 property
+          const records = json.sheet1S || json.sheet1;
+          if (!records) {
+            throw new Error("No records found in the response.");
+          }
+          renderTable(records);
         })
         .catch(error => {
           console.error('Error fetching records:', error);
-          document.getElementById('recordsContainer').innerText = 'Error loading records.';
+          document.getElementById('recordsContainer').innerText = 'Error loading records: ' + error.message;
         });
     }
 
@@ -194,7 +199,7 @@
       const updatedRequestType = row.querySelector('.requestType input').value;
       const updatedEmployee = row.querySelector('.employee input').value;
 
-      // Prepare updated data. The invoice number and timestamp remain unchanged.
+      // Prepare updated data. The invoice number remains unchanged.
       const updatedData = {
         sheet1: {
           title: updatedCustomer,
