@@ -29,21 +29,23 @@
       position: relative;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    /* Navigation link in header */
-    .header a {
+    /* Navigation link in header fixed to top right */
+    .header a.nav-link {
       position: absolute;
-      right: 20px;
+      right: 10px;
       top: 50%;
       transform: translateY(-50%);
       color: #fff;
       text-decoration: none;
-      font-size: 1rem;
-      background: #FF8C00;
-      padding: 8px 12px;
-      border-radius: 6px;
+      font-size: 0.9rem;
+      background: rgba(255, 140, 0, 0.8);
+      padding: 6px 10px;
+      border-radius: 4px;
       transition: background 0.3s ease;
     }
-    .header a:hover { background: #e07a00; }
+    .header a.nav-link:hover {
+      background: rgba(224, 122, 0, 0.9);
+    }
     .container {
       background: #fff;
       width: 95%;
@@ -92,7 +94,7 @@
     th { background: #222; color: #fff; }
     tr:nth-child(even) { background: #f9f9f9; }
     tr:hover { background: #f1f1f1; }
-    /* Notes display: collapsed by default */
+    /* Collapsible notes */
     .notes-display {
       white-space: pre-wrap;
       font-family: 'Roboto', sans-serif;
@@ -102,9 +104,7 @@
       position: relative;
       transition: max-height 0.3s ease;
     }
-    .notes-display.expanded {
-      max-height: none;
-    }
+    .notes-display.expanded { max-height: none; }
     .read-more-btn {
       background: none;
       border: none;
@@ -139,20 +139,18 @@
       margin-top: auto;
     }
     /* Specific elements */
-    .unlock-code, .new-comment, .editor-select {
-      margin-top: 6px;
-      font-size: 0.9rem;
-    }
+    .unlock-code, .new-comment, .editor-select { margin-top: 6px; font-size: 0.9rem; }
     .container, input, textarea, select, button { transition: all 0.3s ease; }
   </style>
 </head>
 <body>
   <div class="header">
     Medhurst Kitchen Equipment
-    <a href="https://medhurstmatt.github.io/order-tracker/view-orders.html" target="_blank">Manage Requests</a>
+    <a href="https://medhurstmatt.github.io/order-tracker/" class="nav-link" target="_blank">Request Form</a>
   </div>
   <div class="container">
     <h2>Manage Medhurst Requests</h2>
+    
     <!-- Filter container -->
     <div class="filter-container">
       <label for="filterSelect">Filter by Request Type:</label>
@@ -160,12 +158,13 @@
         <option value="All">All</option>
       </select>
     </div>
+    
     <div id="recordsContainer">Loading records...</div>
   </div>
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Base API URL (internal ID is used for API calls, not displayed)
+    // Base API URL (internal ID used for API calls, not displayed)
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
     const requestTypeOptions = [
       "To Be Ordered", "Awaiting Order", "On Order", "Parked", "Store Pick Up", "Warehouse Pick Up",
@@ -177,7 +176,6 @@
     ];
     let allRecords = [];
 
-    // Format timestamp to Australian style: DD/MM/YYYY hh:mm AM/PM.
     function formatTimestamp(timestamp) {
       const dateObj = new Date(timestamp);
       const day = ("0" + dateObj.getDate()).slice(-2);
@@ -191,13 +189,11 @@
       return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
     }
 
-    // Format notes by splitting on the separator and inserting horizontal rules.
     function formatNotes(notes) {
       const parts = notes.split("\n\n-----\n");
       return parts.map(part => `<div>${part.trim()}</div>`).join("<hr>");
     }
 
-    // Render filter options.
     function renderFilter() {
       const filterSelect = document.getElementById('filterSelect');
       filterSelect.innerHTML = `<option value="All">All</option>`;
@@ -210,7 +206,6 @@
       filterSelect.addEventListener('change', () => { renderTable(allRecords); });
     }
 
-    // Load records from Sheety.
     function loadRecords() {
       fetch(apiUrl)
         .then(response => response.json())
@@ -228,7 +223,6 @@
         });
     }
 
-    // Render table with filtered records.
     function renderTable(records) {
       const filterValue = document.getElementById('filterSelect').value;
       let filteredRecords = (filterValue === "All") ? records : records.filter(record => record.status === filterValue);
@@ -267,7 +261,6 @@
       document.getElementById('recordsContainer').innerHTML = html;
     }
 
-    // Toggle the expansion/collapse of the notes.
     function toggleNotes(button) {
       const notesDiv = button.parentElement.querySelector('.notes-display');
       if (notesDiv.classList.contains('expanded')) {
@@ -279,7 +272,6 @@
       }
     }
 
-    // Editing functionality.
     function editRow(button) {
       const row = button.closest('tr');
       const recordId = row.getAttribute('data-record-id');
@@ -292,7 +284,6 @@
       row.dataset.originalRequestType = requestType;
       row.dataset.originalEmployee = employee;
 
-      // Build editor selection drop-down.
       let editorHTML = `<label style="font-size:0.9rem;">Who are you?</label>
         <select id="editorSelect_${recordId}" class="editor-select">
           <option value="">Select your name</option>`;
