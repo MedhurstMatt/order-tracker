@@ -29,21 +29,23 @@
       position: relative;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    /* Navigation link in header */
-    .header a.nav-link {
+    /* Unobtrusive navigation link in top-right */
+    .nav-link {
       position: absolute;
-      right: 20px;
+      right: 15px;
       top: 50%;
       transform: translateY(-50%);
       color: #fff;
       text-decoration: none;
-      font-size: 1rem;
-      background: #FF8C00;
-      padding: 8px 12px;
-      border-radius: 6px;
+      font-size: 0.9rem;
+      background: rgba(255, 140, 0, 0.8);
+      padding: 6px 10px;
+      border-radius: 4px;
       transition: background 0.3s ease;
     }
-    .header a.nav-link:hover { background: #e07a00; }
+    .nav-link:hover {
+      background: rgba(224, 122, 0, 0.9);
+    }
     .container {
       background: #fff;
       width: 95%;
@@ -85,6 +87,7 @@
       resize: vertical;
       min-height: 80px;
     }
+    /* Button container for mobile-friendly submit */
     .button-container {
       margin-top: 20px;
       text-align: center;
@@ -137,7 +140,7 @@
         <input type="text" id="passcode" name="passcode" placeholder="Enter passcode">
       </div>
       
-      <!-- Request Type positioned above Notes -->
+      <!-- Request Type (now above Notes) -->
       <label for="status">Request Type</label>
       <select id="status" name="status" required>
         <option value="To Be Ordered">To Be Ordered</option>
@@ -154,7 +157,7 @@
         <option value="Canceled">Canceled</option>
       </select>
       
-      <!-- Notes placed after Request Type -->
+      <!-- Notes (placed after Request Type) -->
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes" placeholder="Enter notes here..." required></textarea>
       
@@ -177,7 +180,7 @@
         <option value="Toby McShane">Toby McShane</option>
       </select>
       
-      <!-- Button container for mobile-friendly submit -->
+      <!-- Button container -->
       <div class="button-container">
         <input type="submit" value="Submit Request">
       </div>
@@ -191,7 +194,6 @@
     const titleInput = document.getElementById('title');
     const passcodeInput = document.getElementById('passcode');
 
-    // Check if the current request type requires a passcode.
     function checkPasscodeRequirement() {
       const rt = statusSelect.value;
       if (rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") {
@@ -206,7 +208,6 @@
 
     statusSelect.addEventListener('change', checkPasscodeRequirement);
 
-    // When passcode is entered, enable the title if the code is correct.
     passcodeInput.addEventListener('input', function() {
       const rt = statusSelect.value;
       const code = passcodeInput.value;
