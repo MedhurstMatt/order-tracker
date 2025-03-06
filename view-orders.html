@@ -38,6 +38,15 @@
       margin-bottom: 20px;
       color: #333;
     }
+    /* Filter styling */
+    .filter-container {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .filter-container select {
+      padding: 6px;
+      font-size: 14px;
+    }
     table {
       border-collapse: collapse;
       width: 100%;
@@ -105,18 +114,31 @@
     .new-comment {
       margin-top: 5px;
     }
+    /* Confirm Identity field styling */
+    .confirm-identity {
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="header">Medhurst Kitchen Equipment</div>
   <div class="container">
     <h2>Manage Medhurst Requests</h2>
+    
+    <!-- Filter container to choose which Request Types to display -->
+    <div class="filter-container">
+      <label for="filterSelect">Filter by Request Type: </label>
+      <select id="filterSelect">
+        <option value="All">All</option>
+      </select>
+    </div>
+    
     <div id="recordsContainer">Loading records...</div>
   </div>
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Base API URL (using the hidden "id" field for API calls)
+    // Base API URL (internal ID is used for API calls but not shown)
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
     // Updated drop-down options for Request Type and Employee
@@ -151,6 +173,25 @@
       "Toby McShane"
     ];
 
+    // Global variable to store all records so filtering works
+    let allRecords = [];
+
+    // Render filter drop-down options (adds All plus each request type)
+    function renderFilter() {
+      const filterSelect = document.getElementById('filterSelect');
+      // Clear previous options except "All"
+      filterSelect.innerHTML = `<option value="All">All</option>`;
+      requestTypeOptions.forEach(rt => {
+        const opt = document.createElement('option');
+        opt.value = rt;
+        opt.textContent = rt;
+        filterSelect.appendChild(opt);
+      });
+      filterSelect.addEventListener('change', () => {
+        renderTable(allRecords);
+      });
+    }
+
     // Load records from Sheety using GET
     function loadRecords() {
       fetch(apiUrl)
@@ -162,6 +203,8 @@
           if (!records) {
             throw new Error("No records found in the response.");
           }
+          allRecords = records; // store globally
+          renderFilter();
           renderTable(records);
         })
         .catch(error => {
@@ -170,11 +213,16 @@
         });
     }
 
-    // Render records in a table (do not display the internal "id")
+    // Render records in a table (filtered by selected request type if not "All")
     function renderTable(records) {
+      const filterValue = document.getElementById('filterSelect').value;
+      let filteredRecords = records;
+      if (filterValue !== "All") {
+        filteredRecords = records.filter(record => record.status === filterValue);
+      }
       let html = '<table>';
       html += '<thead><tr>';
-      // Column header for Customer Name and Invoice (from title)
+      // Display a single column for "Customer Name and Invoice" (from title)
       html += '<th>Customer Name and Invoice</th>';
       html += '<th>Notes</th>';
       html += '<th>Request Type</th>';
@@ -183,9 +231,8 @@
       html += '<th>Actions</th>';
       html += '</tr></thead>';
       html += '<tbody>';
-      records.forEach(record => {
-        // Do not display the id field on screen; use record.title for Customer Name and Invoice.
-        // Do not allow editing if status is Completed or Canceled.
+      filteredRecords.forEach(record => {
+        // Do not allow editing if status is Completed or Canceled
         const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
         html += `<tr data-record-id="${record.id}">
           <td class="customer">${record.title}</td>
@@ -217,14 +264,20 @@
       const employee = row.querySelector('.employee').innerText;
       const timestamp = row.querySelector('.timestamp').innerText;
 
-      // Store original notes to enforce that they aren't deleted.
+      // Store original notes and original request type (for logging changes)
       row.dataset.originalNotes = notes;
+      row.dataset.originalRequestType = requestType;
+      row.dataset.originalEmployee = employee;
+
+      // Add a required Confirm Your Identity field (must be filled before saving)
+      const confirmIdentityHTML = `<input type="text" placeholder="Confirm Your Identity" id="confirmIdentity_${recordId}" class="confirm-identity" required />`;
 
       // For Customer Name and Invoice, create a container with the input and an Unlock Code field.
       row.querySelector('.customer').innerHTML = `
         <div>
           <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
           <br/><input type="text" placeholder="Unlock Code" id="unlockCode_${recordId}" class="unlock-code" />
+          <br/>${confirmIdentityHTML}
         </div>
       `;
 
@@ -245,7 +298,7 @@
       row.querySelector('.requestType').innerHTML = requestTypeSelect;
 
       // Create drop-down for Employee
-      let employeeSelect = `<select>`;
+      let employeeSelect = `<select id="employeeSelect_${recordId}">`;
       employeeOptions.forEach(opt => {
         employeeSelect += `<option value="${opt}" ${opt === employee ? 'selected' : ''}>${opt}</option>`;
       });
@@ -306,23 +359,44 @@
       const originalNotes = row.dataset.originalNotes || "";
       let updatedNotes = originalNotes;
       
-      // Append new comment if provided
+      // If a new comment is provided, append it (with a separator and timestamp)
       if (newComment) {
         const now = new Date();
         updatedNotes += `\n\n-----\nComment added on ${now.toLocaleString()}:\n${newComment}`;
       }
       
       const updatedRequestType = row.querySelector('.requestType select').value;
-      const updatedEmployee = row.querySelector('.employee select').value;
+      const updatedEmployee = document.getElementById(`employeeSelect_${recordId}`).value;
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const updatedCustomer = customerInput.value;
 
+      // Retrieve the confirmed identity
+      const confirmedIdentity = document.getElementById(`confirmIdentity_${recordId}`).value.trim();
+      if (!confirmedIdentity) {
+        alert("Please confirm your identity before saving.");
+        return;
+      }
+      
       // For Awaiting Order or On Order, ensure the unlock code was correctly entered.
       const unlockCodeValue = document.getElementById(`unlockCode_${recordId}`).value;
       if ((updatedRequestType === "Awaiting Order" && unlockCodeValue !== "216521") ||
           (updatedRequestType === "On Order" && unlockCodeValue !== "191221")) {
         alert("Correct unlock code is required to update the Customer Name for this Request Type.");
         return;
+      }
+      
+      // Build a log entry if Request Type or Employee has changed
+      const originalRequestType = row.dataset.originalRequestType;
+      const originalEmployee = row.dataset.originalEmployee;
+      let changeLog = "";
+      if (updatedRequestType !== originalRequestType) {
+        changeLog += `\nStatus changed from "${originalRequestType}" to "${updatedRequestType}" by ${confirmedIdentity} on ${new Date().toLocaleString()}.`;
+      }
+      if (updatedEmployee !== originalEmployee) {
+        changeLog += `\nEmployee changed from "${originalEmployee}" to "${updatedEmployee}" by ${confirmedIdentity} on ${new Date().toLocaleString()}.`;
+      }
+      if (changeLog) {
+        updatedNotes += `\n\n-----\n${changeLog}`;
       }
 
       // Prepare updated data.
