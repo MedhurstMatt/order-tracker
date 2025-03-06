@@ -60,11 +60,13 @@
       background-color: #f1f1f1;
     }
     input[type="text"],
-    textarea {
+    textarea,
+    select {
       width: 95%;
       padding: 6px;
       font-family: inherit;
       font-size: 14px;
+      box-sizing: border-box;
     }
     button {
       padding: 6px 12px;
@@ -108,6 +110,35 @@
     // Base API URL
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
+    // Drop-down options for Request Type and Employee
+    const requestTypeOptions = [
+      "To Be Ordered",
+      "Awaiting Order",
+      "On Order",
+      "Store Pick Up",
+      "Warehouse Pick Up",
+      "Delivery Request",
+      "Freight Forward",
+      "Completed",
+      "Canceled"
+    ];
+    
+    const employeeOptions = [
+      "Allan Bakker",
+      "Anne McShane",
+      "Cathy Mayne",
+      "Colin Chung",
+      "Elaine Killalea",
+      "Fergus McShane",
+      "Garry Williams",
+      "Hamish Killalea",
+      "Matthew Tonks",
+      "Matthew Tracey",
+      "Paul Tickner",
+      "Richard Medhurst",
+      "Toby McShane"
+    ];
+
     // Load records from Sheety using GET
     function loadRecords() {
       fetch(apiUrl)
@@ -141,6 +172,8 @@
       html += '</tr></thead>';
       html += '<tbody>';
       records.forEach(record => {
+        // If status is Completed or Canceled, do not show edit button.
+        const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
         html += `<tr data-record-id="${record.id}">
           <td class="invoice">${record.id}</td>
           <td class="customer">${record.title}</td>
@@ -148,10 +181,13 @@
           <td class="requestType">${record.status}</td>
           <td class="employee">${record.employee}</td>
           <td class="timestamp">${record.timestamp}</td>
-          <td>
-            <button class="edit-btn" onclick="editRow(this)">Edit</button>
-          </td>
-        </tr>`;
+          <td>`;
+        if (canEdit) {
+          html += `<button class="edit-btn" onclick="editRow(this)">Edit</button>`;
+        } else {
+          html += `Locked`;
+        }
+        html += `</td></tr>`;
       });
       html += '</tbody></table>';
       document.getElementById('recordsContainer').innerHTML = html;
@@ -170,12 +206,29 @@
       const employee = row.querySelector('.employee').innerText;
       const timestamp = row.querySelector('.timestamp').innerText;
 
-      // Replace cells with input fields (Invoice Number and Timestamp remain uneditable)
+      // Replace cells with input fields
+      // Invoice Number and Customer Name remain uneditable.
       row.querySelector('.invoice').innerHTML = `<input type="text" value="${invoice}" disabled />`;
-      row.querySelector('.customer').innerHTML = `<input type="text" value="${customer}" />`;
+      row.querySelector('.customer').innerHTML = `<input type="text" value="${customer}" disabled />`;
       row.querySelector('.notes').innerHTML = `<textarea rows="2">${notes}</textarea>`;
-      row.querySelector('.requestType').innerHTML = `<input type="text" value="${requestType}" />`;
-      row.querySelector('.employee').innerHTML = `<input type="text" value="${employee}" />`;
+
+      // Create drop-down for Request Type
+      let requestTypeSelect = `<select>`;
+      requestTypeOptions.forEach(opt => {
+        requestTypeSelect += `<option value="${opt}" ${opt === requestType ? 'selected' : ''}>${opt}</option>`;
+      });
+      requestTypeSelect += `</select>`;
+      row.querySelector('.requestType').innerHTML = requestTypeSelect;
+
+      // Create drop-down for Employee
+      let employeeSelect = `<select>`;
+      employeeOptions.forEach(opt => {
+        employeeSelect += `<option value="${opt}" ${opt === employee ? 'selected' : ''}>${opt}</option>`;
+      });
+      employeeSelect += `</select>`;
+      row.querySelector('.employee').innerHTML = employeeSelect;
+
+      // Timestamp remains uneditable
       row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
 
       // Replace actions with Save and Cancel buttons
@@ -194,15 +247,15 @@
     // Save the edited row using a PUT request
     function saveRow(button, recordId) {
       const row = button.closest('tr');
-      const updatedCustomer = row.querySelector('.customer input').value;
+      // Note: Invoice Number and Customer Name are not editable.
       const updatedNotes = row.querySelector('.notes textarea').value;
-      const updatedRequestType = row.querySelector('.requestType input').value;
-      const updatedEmployee = row.querySelector('.employee input').value;
+      const updatedRequestType = row.querySelector('.requestType select').value;
+      const updatedEmployee = row.querySelector('.employee select').value;
 
-      // Prepare updated data. The invoice number remains unchanged.
+      // Prepare updated data. Invoice Number and Customer Name remain unchanged.
       const updatedData = {
         sheet1: {
-          title: updatedCustomer,
+          // title remains unchanged.
           notes: updatedNotes,
           status: updatedRequestType,
           employee: updatedEmployee,
