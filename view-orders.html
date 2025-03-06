@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <title>Medhurst Kitchen Equipment - Manage Requests</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Using Google Fonts for modern typography -->
+  <!-- Google Fonts for modern typography -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* Reset some defaults */
+    /* Reset and base styles */
     * {
       box-sizing: border-box;
     }
@@ -75,6 +75,7 @@
       border: 1px solid #eee;
       text-align: left;
       font-size: 0.9rem;
+      vertical-align: top;
     }
     th {
       background: #222;
@@ -86,22 +87,16 @@
     tr:hover {
       background: #f1f1f1;
     }
-    input[type="text"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 8px;
-      margin: 4px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    /* Ensure that newlines are rendered and the notes are separated */
+    .notes-display {
+      white-space: pre-wrap;
+      font-family: 'Roboto', sans-serif;
       font-size: 0.9rem;
-      transition: border 0.3s ease;
     }
-    input[type="text"]:focus,
-    textarea:focus,
-    select:focus {
-      border-color: #FF8C00;
-      outline: none;
+    hr {
+      border: 0;
+      border-top: 1px solid #ccc;
+      margin: 8px 0;
     }
     button {
       padding: 8px 14px;
@@ -170,7 +165,7 @@
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Base API URL (internal id used for API calls, not displayed)
+    // Base API URL (internal ID used for API calls, not displayed)
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
     // Options for Request Type and Employee
@@ -206,7 +201,15 @@
 
     let allRecords = [];
 
-    // Render filter options
+    // Formats the notes by splitting on the separator and joining with <hr>
+    function formatNotes(notes) {
+      // Split by "\n\n-----\n" (the separator used when appending logs)
+      const parts = notes.split("\n\n-----\n");
+      // Wrap each part in a div and join with an <hr>
+      return parts.map(part => `<div>${part.trim()}</div>`).join("<hr>");
+    }
+
+    // Render filter options.
     function renderFilter() {
       const filterSelect = document.getElementById('filterSelect');
       filterSelect.innerHTML = `<option value="All">All</option>`;
@@ -221,7 +224,7 @@
       });
     }
 
-    // Load records from Sheety
+    // Load records from Sheety.
     function loadRecords() {
       fetch(apiUrl)
         .then(response => response.json())
@@ -239,7 +242,7 @@
         });
     }
 
-    // Render table with optional filtering
+    // Render table with optional filtering. The Notes cell is formatted.
     function renderTable(records) {
       const filterValue = document.getElementById('filterSelect').value;
       let filteredRecords = (filterValue === "All") ? records : records.filter(record => record.status === filterValue);
@@ -259,7 +262,7 @@
         const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
         html += `<tr data-record-id="${record.id}">
           <td class="customer">${record.title}</td>
-          <td class="notes">${record.notes}</td>
+          <td class="notes notes-display">${formatNotes(record.notes)}</td>
           <td class="requestType">${record.status}</td>
           <td class="employee">${record.employee}</td>
           <td class="timestamp">${record.timestamp}</td>
@@ -275,7 +278,7 @@
       document.getElementById('recordsContainer').innerHTML = html;
     }
 
-    // Enable editing with an editor selection first
+    // --- Editing functionality with similar logic as before ---
     function editRow(button) {
       const row = button.closest('tr');
       const recordId = row.getAttribute('data-record-id');
@@ -297,7 +300,6 @@
       });
       editorHTML += `</select>`;
 
-      // Build editable Customer field with unlock code.
       row.querySelector('.customer').innerHTML = `
         <div>
           <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
@@ -305,21 +307,18 @@
           <br/>${editorHTML}
         </div>
       `;
-      // Show original notes and add New Comment area (disabled until editor is selected).
       row.querySelector('.notes').innerHTML = `
         <div>
-          <div style="white-space: pre-wrap;">${notes}</div>
+          <div class="notes-display">${formatNotes(notes)}</div>
           <textarea rows="2" placeholder="Add new comment (cannot delete original)..." id="newComment_${recordId}" class="new-comment" disabled></textarea>
         </div>
       `;
-      // Editable Request Type drop-down (disabled until editor is chosen).
       let requestTypeSelect = `<select id="requestTypeSelect_${recordId}" disabled>`;
       requestTypeOptions.forEach(opt => {
         requestTypeSelect += `<option value="${opt}" ${opt === requestType ? 'selected' : ''}>${opt}</option>`;
       });
       requestTypeSelect += `</select>`;
       row.querySelector('.requestType').innerHTML = requestTypeSelect;
-      // Editable Employee drop-down (starts with a blank option).
       let employeeSelect = `<select id="employeeSelect_${recordId}" disabled>
           <option value="">Select Employee</option>`;
       employeeOptions.forEach(opt => {
@@ -327,10 +326,8 @@
       });
       employeeSelect += `</select>`;
       row.querySelector('.employee').innerHTML = employeeSelect;
-      // Timestamp remains read-only.
       row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
 
-      // Get references.
       const editorSelect = document.getElementById(`editorSelect_${recordId}`);
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const unlockInput = document.getElementById(`unlockCode_${recordId}`);
@@ -338,16 +335,20 @@
       const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
       const employeeSelectField = document.getElementById(`employeeSelect_${recordId}`);
 
-      // When editor is chosen, enable fields.
       editorSelect.addEventListener('change', function() {
         if (editorSelect.value !== "") {
           newCommentArea.disabled = false;
           requestSelect.disabled = false;
           employeeSelectField.disabled = false;
-          // If request type requires unlock code.
-          if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order") {
+          if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order" || requestSelect.value === "Moved to Delivery") {
             unlockInput.style.display = 'block';
-            unlockInput.placeholder = requestSelect.value === "Awaiting Order" ? "Enter code for Awaiting Order" : "Enter code for On Order";
+            if (requestSelect.value === "Awaiting Order") {
+              unlockInput.placeholder = "Enter code for Awaiting Order";
+            } else if (requestSelect.value === "On Order") {
+              unlockInput.placeholder = "Enter code for On Order";
+            } else if (requestSelect.value === "Moved to Delivery") {
+              unlockInput.placeholder = "Enter code for Moved to Delivery";
+            }
           } else {
             unlockInput.style.display = 'none';
             unlockInput.value = "";
@@ -360,11 +361,16 @@
         }
       });
 
-      // When request type changes, update unlock code field.
       requestSelect.addEventListener('change', function() {
-        if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order") {
+        if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order" || requestSelect.value === "Moved to Delivery") {
           unlockInput.style.display = 'block';
-          unlockInput.placeholder = requestSelect.value === "Awaiting Order" ? "Enter code for Awaiting Order" : "Enter code for On Order";
+          if (requestSelect.value === "Awaiting Order") {
+            unlockInput.placeholder = "Enter code for Awaiting Order";
+          } else if (requestSelect.value === "On Order") {
+            unlockInput.placeholder = "Enter code for On Order";
+          } else if (requestSelect.value === "Moved to Delivery") {
+            unlockInput.placeholder = "Enter code for Moved to Delivery";
+          }
           customerInput.disabled = true;
         } else {
           unlockInput.style.display = 'none';
@@ -373,18 +379,18 @@
         }
       });
 
-      // Unlock Customer input if correct code entered.
       unlockInput.addEventListener('input', function() {
         if (requestSelect.value === "Awaiting Order" && unlockInput.value === "216521") {
           customerInput.disabled = false;
         } else if (requestSelect.value === "On Order" && unlockInput.value === "191221") {
+          customerInput.disabled = false;
+        } else if (requestSelect.value === "Moved to Delivery" && unlockInput.value === "201896") {
           customerInput.disabled = false;
         } else {
           customerInput.disabled = true;
         }
       });
 
-      // Replace action buttons.
       const actionsCell = row.querySelector('td:last-child');
       actionsCell.innerHTML = `
         <button class="save-btn" onclick="saveRow(this, '${recordId}')">Save</button>
@@ -392,12 +398,10 @@
       `;
     }
 
-    // Cancel editing.
     function cancelEdit(button) {
       loadRecords();
     }
 
-    // Save edited row.
     function saveRow(button, recordId) {
       const row = button.closest('tr');
       const newComment = document.getElementById(`newComment_${recordId}`).value.trim();
@@ -405,7 +409,8 @@
       let updatedNotes = originalNotes;
       if (newComment) {
         const now = new Date();
-        updatedNotes += `\n\n-----\nComment added on ${now.toLocaleString()}:\n${newComment}`;
+        // Use a longer separator for visual clarity.
+        updatedNotes += `\n\n--------------------------------------------------\nComment added on ${now.toLocaleString()}:\n${newComment}`;
       }
       const updatedRequestType = document.getElementById(`requestTypeSelect_${recordId}`).value;
       const updatedEmployee = document.getElementById(`employeeSelect_${recordId}`).value;
@@ -415,7 +420,6 @@
       }
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const updatedCustomer = customerInput.value;
-      // Get editor's identity.
       const editor = document.getElementById(`editorSelect_${recordId}`).value;
       if (!editor) {
         alert("Please select who you are before saving.");
@@ -423,7 +427,8 @@
       }
       const unlockCodeValue = document.getElementById(`unlockCode_${recordId}`).value;
       if ((updatedRequestType === "Awaiting Order" && unlockCodeValue !== "216521") ||
-          (updatedRequestType === "On Order" && unlockCodeValue !== "191221")) {
+          (updatedRequestType === "On Order" && unlockCodeValue !== "191221") ||
+          (updatedRequestType === "Moved to Delivery" && unlockCodeValue !== "201896")) {
         alert("Correct unlock code is required to update the Customer Name for this Request Type.");
         return;
       }
@@ -437,7 +442,7 @@
         changeLog += `\nEmployee changed from "${originalEmployee}" to "${updatedEmployee}" by ${editor} on ${new Date().toLocaleString()}.`;
       }
       if (changeLog) {
-        updatedNotes += `\n\n-----\n${changeLog}`;
+        updatedNotes += `\n\n--------------------------------------------------\n${changeLog}`;
       }
       const updatedData = {
         sheet1: {
