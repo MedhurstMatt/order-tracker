@@ -4,82 +4,94 @@
   <meta charset="UTF-8">
   <title>Medhurst Kitchen Equipment - Request Form</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts for modern typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+    }
     body {
-      background-color: #FFA500;
-      color: #333;
-      font-family: 'Roboto', sans-serif;
       margin: 0;
-      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #FF8C00, #FFA500);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     .header {
-      background-color: #333;
+      background: #222;
       color: #fff;
-      padding: 15px 0;
+      padding: 20px;
       text-align: center;
-      font-size: 24px;
+      font-size: 2rem;
       font-weight: 500;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
     .container {
-      background-color: #fff;
-      max-width: 500px;
-      margin: 40px auto;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      background: #fff;
+      width: 95%;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
     h2 {
       text-align: center;
       margin-bottom: 20px;
-      color: #333;
+      font-size: 1.75rem;
+      color: #222;
     }
     label {
       display: block;
-      margin-bottom: 6px;
+      margin: 10px 0 4px;
       font-weight: 500;
     }
     input[type="text"],
     textarea,
     select {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
+      padding: 10px;
+      margin-bottom: 12px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      box-sizing: border-box;
+      font-size: 1rem;
       transition: border 0.3s ease;
     }
     input[type="text"]:focus,
     textarea:focus,
     select:focus {
-      border-color: #333;
+      border-color: #FF8C00;
       outline: none;
     }
-    .unlock-code-container {
-      display: none;
+    textarea {
+      resize: vertical;
+      min-height: 80px;
     }
     input[type="submit"] {
-      background-color: #333;
+      background: #222;
       color: #fff;
       border: none;
       padding: 14px;
       width: 100%;
       border-radius: 6px;
-      font-size: 16px;
+      font-size: 1rem;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: background 0.3s ease;
     }
     input[type="submit"]:hover {
-      background-color: #555;
+      background: #444;
     }
     .footer {
-      background-color: #333;
+      background: #222;
       color: #fff;
       text-align: center;
-      padding: 10px 0;
-      font-size: 14px;
-      margin-top: 20px;
+      padding: 12px 0;
+      font-size: 0.85rem;
+      margin-top: auto;
     }
   </style>
 </head>
@@ -88,15 +100,15 @@
   <div class="container">
     <h2>Medhurst Request Form</h2>
     <form id="requestForm">
-      <label for="id">Invoice Number</label>
-      <input type="text" id="id" name="id" required>
-      
+      <!-- Customer Name (mapped to title) -->
       <label for="title">Customer Name</label>
-      <input type="text" id="title" name="title" required>
+      <input type="text" id="title" name="title" placeholder="Enter customer name" required>
       
+      <!-- Notes -->
       <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" rows="3" required></textarea>
+      <textarea id="notes" name="notes" placeholder="Enter notes here..." required></textarea>
       
+      <!-- Request Type -->
       <label for="status">Request Type</label>
       <select id="status" name="status" required>
         <option value="To Be Ordered">To Be Ordered</option>
@@ -109,15 +121,14 @@
         <option value="Moved to Delivery">Moved to Delivery</option>
         <option value="Paul Delivery">Paul Delivery</option>
         <option value="Freight Forward">Freight Forward</option>
+        <option value="Completed">Completed</option>
+        <option value="Canceled">Canceled</option>
       </select>
       
-      <div class="unlock-code-container" id="unlockContainer">
-        <label for="unlockCode">Unlock Code</label>
-        <input type="text" id="unlockCode" placeholder="">
-      </div>
-      
+      <!-- Employee -->
       <label for="employee">Employee</label>
       <select id="employee" name="employee" required>
+        <option value="">Select Employee</option>
         <option value="Allan Bakker">Allan Bakker</option>
         <option value="Anne McShane">Anne McShane</option>
         <option value="Cathy Mayne">Cathy Mayne</option>
@@ -133,65 +144,33 @@
         <option value="Toby McShane">Toby McShane</option>
       </select>
       
+      <!-- Hidden ID and Timestamp will be added automatically -->
       <input type="submit" value="Submit Request">
     </form>
-    <div id="responseMessage"></div>
   </div>
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    const form = document.getElementById('requestForm');
-    const statusSelect = document.getElementById('status');
-    const unlockContainer = document.getElementById('unlockContainer');
-    const unlockInput = document.getElementById('unlockCode');
-
-    // When request type changes, show/hide the Unlock Code field
-    statusSelect.addEventListener('change', function() {
-      const selected = statusSelect.value;
-      if (selected === "Awaiting Order") {
-        unlockContainer.style.display = 'block';
-        unlockInput.placeholder = "Enter code for Awaiting Order";
-      } else if (selected === "On Order") {
-        unlockContainer.style.display = 'block';
-        unlockInput.placeholder = "Enter code for On Order";
-      } else {
-        unlockContainer.style.display = 'none';
-        unlockInput.value = "";
-      }
-    });
-
-    form.addEventListener('submit', function(e) {
+    document.getElementById('requestForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Get current timestamp
-      const timestamp = new Date().toISOString();
-
-      // Validate unlock code if needed
-      const selected = statusSelect.value;
-      if (selected === "Awaiting Order" && unlockInput.value !== "216521") {
-        alert("Incorrect unlock code for Awaiting Order.");
-        return;
-      } else if (selected === "On Order" && unlockInput.value !== "191221") {
-        alert("Incorrect unlock code for On Order.");
-        return;
-      }
-
-      // Create the data object (using "sheet1" as the key for Sheety)
-      const orderData = {
+      // Build the data object. We don't send an ID since it's generated.
+      const requestData = {
         sheet1: {
-          id: document.getElementById('id').value,
           title: document.getElementById('title').value,
           notes: document.getElementById('notes').value,
-          status: statusSelect.value,
+          status: document.getElementById('status').value,
           employee: document.getElementById('employee').value,
-          timestamp: timestamp
+          timestamp: new Date().toISOString()
         }
       };
 
       fetch('https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
       })
       .then(response => {
         if (!response.ok) {
@@ -200,12 +179,11 @@
         return response.json();
       })
       .then(data => {
-        document.getElementById('responseMessage').innerText = 'Request submitted successfully!';
-        form.reset();
-        unlockContainer.style.display = 'none';
+        alert("Request submitted successfully!");
+        document.getElementById('requestForm').reset();
       })
       .catch(error => {
-        document.getElementById('responseMessage').innerText = 'Error: ' + error.message;
+        alert("Error: " + error.message);
       });
     });
   </script>
