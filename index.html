@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Stylish Order Tracker</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1, h2 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    hr {
+      border: 0;
+      height: 1px;
+      background: #ddd;
+      margin: 20px 0;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 8px 16px;
+      margin: 4px 2px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .btn-group button {
+      margin-right: 5px;
+    }
+    .employee-login, .new-order, .filter-section, .orders-section {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #e0e0e0;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Order Tracker</h1>
+
+  <!-- Employee Login Section -->
+  <div class="employee-login">
+    <h2>Employee Login</h2>
+    <input type="text" id="employeeNameInput" placeholder="Enter your name">
+    <button id="setEmployeeBtn">Set Employee</button>
+    <p id="loggedEmployee"></p>
+  </div>
+  <hr>
+
+  <!-- New Order Form -->
+  <div class="new-order">
+    <h2>Add New Order</h2>
+    <form id="orderForm">
+      <label for="title">Order Title:</label>
+      <input type="text" id="title" required>
+      <label for="notes">Notes:</label>
+      <textarea id="notes"></textarea>
+      <button type="submit">Add Order</button>
+    </form>
+  </div>
+  <hr>
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <h2>Filter Orders</h2>
+    <label for="filterStatus">Filter by Status:</label>
+    <select id="filterStatus">
+      <option value="all">All</option>
+      <option value="to be ordered">to be ordered</option>
+      <option value="on order">on order</option>
+      <option value="awaiting order">awaiting order</option>
+      <option value="store pick up">store pick up</option>
+      <option value="warehouse pick up">warehouse pick up</option>
+      <option value="delivery request">delivery request</option>
+      <option value="freight forward">freight forward</option>
+      <option value="completed">completed</option>
+      <option value="canceled">canceled</option>
+    </select>
+  </div>
+  <hr>
+
+  <!-- Orders Table -->
+  <div class="orders-section">
+    <h2>Current Orders</h2>
+    <table id="ordersTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Notes</th>
+          <th>Status</th>
+          <th>Employee</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Orders will be dynamically inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    /*************** Employee Login Code ***************/
+    let currentEmployee = "";
+    function setEmployee() {
+      const empInput = document.getElementById("employeeNameInput");
+      if (empInput.value.trim() !== "") {
+        currentEmployee = empInput.value.trim();
+        localStorage.setItem("employeeName", currentEmployee);
+        updateEmployeeDisplay();
+        empInput.value = "";
+      } else {
+        alert("Please enter a valid employee name.");
+      }
+    }
+    function updateEmployeeDisplay() {
+      document.getElementById("loggedEmployee").textContent = "Logged in as: " + (currentEmployee || "None");
+    }
+    document.getElementById("setEmployeeBtn").addEventListener("click", setEmployee);
+
+    /*************** Order Tracker Code ***************/
+    let orders = [];
+    let orderId = 0;
+    // Define statuses (note: "canceled" is only set via cancellation)
+    const statuses = [
+      "to be ordered",
+      "on order",
+      "awaiting order",
+      "store pick up",
+      "warehouse pick up",
+      "delivery request",
+      "freight forward",
+      "completed",
+      "canceled"
+    ];
+
+    // Render orders (with filtering) and show delete button with password control
+    function renderOrders() {
+      const filter = document.getElementById("filterStatus").value;
+      const tbody = document.getElementById("ordersTable").querySelector("tbody");
+      tbody.innerHTML = "";
+      const filteredOrders = orders.filter(order => filter === "all" || order.status === filter);
+      filteredOrders.forEach(order => {
+        // Orders that are 'completed' or 'canceled' become read-only
+        const isEditable = (order.status !== "completed" && order.status !== "canceled");
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${order.id}</td>
+          <td>${order.title}</td>
+          <td>
+            <textarea onchange="updateNotes(${order.id}, this.value)" ${isEditable ? "" : "disabled"}>${order.notes}</textarea>
+          </td>
+          <td>
+            <select onchange="updateStatus(${order.id}, this.value)" ${isEditable ? "" : "disabled"}>
+              ${statuses.filter(s => s !== "canceled").map(status => `<option value="${status}" ${order.status === status ? "selected" : ""}>${status}</option>`).join("")}
+            </select>
+          </td>
+          <td>${order.employee || "N/A"}</td>
+          <td class="btn-group">
+            ${ isEditable ? `<button onclick="advanceStatus(${order.id})">Next Step</button>
+            <button onclick="cancelOrder(${order.id})">Cancel</button>` : "" }
+            <button onclick="deleteOrder(${order.id})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateNotes(id, newNotes) {
+      orders = orders.map(order => {
+        if (order.id === id && order.status !== "completed" && order.status !== "canceled") {
+          order.notes = newNotes;
+        }
+        return order;
+      });
+      saveOrders();
+      renderOrders();
+    }
+
+    function updateStatus(id, newStatus) {
+      orders = orders.map(order => {
+        if (order.id === id && order.status !== "completed" && order.status !== "canceled") {
+          order.status = newStatus;
+        }
+        return order;
+      });
+      saveOrders();
+      renderOrders();
+    }
+
+    function advanceStatus(id) {
+      orders = orders.map(order => {
+        if (order.id === id && order.status !== "completed" && order.status !== "canceled") {
+          let currentIndex = statuses.indexOf(order.status);
+          // Do not auto-advance into "canceled"; allow progression only up to "completed"
+          if (currentIndex >= 0 && currentIndex < statuses.indexOf("completed")) {
+            order.status = statuses[currentIndex + 1];
+          }
+        }
+        return order;
+      });
+      saveOrders();
+      renderOrders();
+    }
+
+    function cancelOrder(id) {
+      orders = orders.map(order => {
+        if (order.id === id && order.status !== "completed" && order.status !== "canceled") {
+          order.status = "canceled";
+        }
+        return order;
+      });
+      saveOrders();
+      renderOrders();
+    }
+
+    // Delete function is password protected. The password is "216521".
+    function deleteOrder(id) {
+      const pwd = prompt("Enter delete password:");
+      if (pwd === null) return; // user cancelled
+      if (pwd !== "216521") {
+        alert("Incorrect password. Deletion aborted.");
+        return;
+      }
+      if (confirm("Are you sure you want to permanently delete this order?")) {
+        orders = orders.filter(order => order.id !== id);
+        saveOrders();
+        renderOrders();
+      }
+    }
+
+    function saveOrders() {
+      localStorage.setItem("orders", JSON.stringify(orders));
+    }
+
+    function loadOrders() {
+      if (localStorage.getItem("orders")) {
+        orders = JSON.parse(localStorage.getItem("orders"));
+        if (orders.length > 0) {
+          orderId = Math.max(...orders.map(o => o.id)) + 1;
+        }
+      }
+    }
+
+    // Add new order on form submit
+    document.getElementById("orderForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      if (!currentEmployee) {
+        alert("Please set your employee name first.");
+        return;
+      }
+      const title = document.getElementById("title").value;
+      const notes = document.getElementById("notes").value;
+      const order = {
+        id: orderId++,
+        title: title,
+        notes: notes,
+        status: statuses[0],  // "to be ordered"
+        employee: currentEmployee
+      };
+      orders.push(order);
+      saveOrders();
+      renderOrders();
+      this.reset();
+    });
+
+    document.getElementById("filterStatus").addEventListener("change", renderOrders);
+
+    // On page load, restore employee name and orders
+    window.addEventListener("load", function() {
+      const storedEmployee = localStorage.getItem("employeeName");
+      if (storedEmployee) {
+        currentEmployee = storedEmployee;
+      }
+      updateEmployeeDisplay();
+      loadOrders();
+      renderOrders();
+    });
+  </script>
+</body>
+</html>
