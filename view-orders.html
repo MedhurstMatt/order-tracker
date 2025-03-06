@@ -4,118 +4,151 @@
   <meta charset="UTF-8">
   <title>Medhurst Kitchen Equipment - Manage Requests</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Using Google Fonts for modern typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* Reset some defaults */
+    * {
+      box-sizing: border-box;
+    }
     body {
-      background-color: #FFA500; /* Orange background */
-      color: #333;
-      font-family: 'Roboto', sans-serif;
       margin: 0;
-      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #FF8C00, #FFA500);
+      color: #333;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
     .header {
-      background-color: #333;
+      background: #222;
       color: #fff;
-      padding: 15px 0;
+      padding: 20px;
       text-align: center;
-      font-size: 24px;
+      font-size: 2rem;
       font-weight: 500;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
     .container {
-      background-color: #fff;
-      max-width: 95%;
+      background: #fff;
+      width: 95%;
+      max-width: 1200px;
       margin: 20px auto;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
       overflow-x: auto;
     }
     h2 {
       text-align: center;
       margin-bottom: 20px;
-      color: #333;
+      font-size: 1.75rem;
+      color: #222;
     }
     .filter-container {
-      margin-bottom: 15px;
       text-align: center;
+      margin-bottom: 20px;
+    }
+    .filter-container label {
+      font-size: 1rem;
+      margin-right: 8px;
     }
     .filter-container select {
-      padding: 6px;
-      font-size: 14px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    .filter-container select:focus {
+      border-color: #FF8C00;
     }
     table {
-      border-collapse: collapse;
       width: 100%;
-      min-width: 600px;
+      border-collapse: collapse;
+      margin-bottom: 20px;
     }
     th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
+      padding: 12px 15px;
+      border: 1px solid #eee;
       text-align: left;
-      font-size: 14px;
+      font-size: 0.9rem;
     }
     th {
-      background-color: #333;
+      background: #222;
       color: #fff;
     }
     tr:nth-child(even) {
-      background-color: #fafafa;
+      background: #f9f9f9;
     }
     tr:hover {
-      background-color: #f1f1f1;
+      background: #f1f1f1;
     }
     input[type="text"],
     textarea,
     select {
-      width: 95%;
-      padding: 6px;
-      font-family: inherit;
-      font-size: 14px;
-      box-sizing: border-box;
+      width: 100%;
+      padding: 8px;
+      margin: 4px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: border 0.3s ease;
+    }
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #FF8C00;
+      outline: none;
     }
     button {
-      padding: 6px 12px;
-      margin-right: 5px;
+      padding: 8px 14px;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 0.9rem;
+      transition: background 0.3s ease;
+      margin: 2px;
     }
     .edit-btn {
-      background-color: #007BFF;
+      background: #007BFF;
       color: #fff;
+    }
+    .edit-btn:hover {
+      background: #0056b3;
     }
     .save-btn {
-      background-color: #28a745;
+      background: #28a745;
       color: #fff;
+    }
+    .save-btn:hover {
+      background: #1e7e34;
     }
     .cancel-btn {
-      background-color: #dc3545;
+      background: #dc3545;
       color: #fff;
+    }
+    .cancel-btn:hover {
+      background: #c82333;
     }
     .footer {
-      background-color: #333;
+      background: #222;
       color: #fff;
       text-align: center;
-      padding: 10px 0;
-      font-size: 14px;
+      padding: 12px 0;
+      font-size: 0.85rem;
       margin-top: auto;
     }
-    /* Style for the unlock code input */
-    .unlock-code {
-      display: none;
-      margin-top: 5px;
+    /* Specific elements */
+    .unlock-code, .new-comment, .editor-select {
+      margin-top: 6px;
+      font-size: 0.9rem;
     }
-    /* New Comment area styling */
-    .new-comment {
-      margin-top: 5px;
-    }
-    /* Editor select styling */
-    .editor-select {
-      margin-bottom: 5px;
+    /* Smooth transitions */
+    .container, input, textarea, select, button {
+      transition: all 0.3s ease;
     }
   </style>
 </head>
@@ -123,21 +156,24 @@
   <div class="header">Medhurst Kitchen Equipment</div>
   <div class="container">
     <h2>Manage Medhurst Requests</h2>
+    
+    <!-- Filter container -->
     <div class="filter-container">
-      <label for="filterSelect">Filter by Request Type: </label>
+      <label for="filterSelect">Filter by Request Type:</label>
       <select id="filterSelect">
         <option value="All">All</option>
       </select>
     </div>
+    
     <div id="recordsContainer">Loading records...</div>
   </div>
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Base API URL (internal ID is used for API calls but not shown)
+    // Base API URL (internal id used for API calls, not displayed)
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
-    // Options for Request Type and Employee lists.
+    // Options for Request Type and Employee
     const requestTypeOptions = [
       "To Be Ordered",
       "Awaiting Order",
@@ -152,7 +188,6 @@
       "Completed",
       "Canceled"
     ];
-    
     const employeeOptions = [
       "Allan Bakker",
       "Anne McShane",
@@ -171,7 +206,7 @@
 
     let allRecords = [];
 
-    // Render filter drop-down options.
+    // Render filter options
     function renderFilter() {
       const filterSelect = document.getElementById('filterSelect');
       filterSelect.innerHTML = `<option value="All">All</option>`;
@@ -186,43 +221,40 @@
       });
     }
 
-    // Load records from Sheety.
+    // Load records from Sheety
     function loadRecords() {
       fetch(apiUrl)
         .then(response => response.json())
         .then(json => {
           console.log("Fetched JSON:", json);
           const records = json.sheet1S || json.sheet1;
-          if (!records) {
-            throw new Error("No records found in the response.");
-          }
+          if (!records) throw new Error("No records found in the response.");
           allRecords = records;
           renderFilter();
           renderTable(records);
         })
         .catch(error => {
-          console.error('Error fetching records:', error);
-          document.getElementById('recordsContainer').innerText = 'Error loading records: ' + error.message;
+          console.error("Error fetching records:", error);
+          document.getElementById('recordsContainer').innerText = "Error loading records: " + error.message;
         });
     }
 
-    // Render records table with optional filtering.
+    // Render table with optional filtering
     function renderTable(records) {
       const filterValue = document.getElementById('filterSelect').value;
-      let filteredRecords = records;
-      if (filterValue !== "All") {
-        filteredRecords = records.filter(record => record.status === filterValue);
-      }
-      let html = '<table>';
-      html += '<thead><tr>';
-      html += '<th>Customer Name and Invoice</th>';
-      html += '<th>Notes</th>';
-      html += '<th>Request Type</th>';
-      html += '<th>Employee</th>';
-      html += '<th>Timestamp</th>';
-      html += '<th>Actions</th>';
-      html += '</tr></thead>';
-      html += '<tbody>';
+      let filteredRecords = (filterValue === "All") ? records : records.filter(record => record.status === filterValue);
+      let html = `<table>
+        <thead>
+          <tr>
+            <th>Customer Name and Invoice</th>
+            <th>Notes</th>
+            <th>Request Type</th>
+            <th>Employee</th>
+            <th>Timestamp</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>`;
       filteredRecords.forEach(record => {
         const canEdit = (record.status !== "Completed" && record.status !== "Canceled");
         html += `<tr data-record-id="${record.id}">
@@ -239,29 +271,25 @@
         }
         html += `</td></tr>`;
       });
-      html += '</tbody></table>';
+      html += `</tbody></table>`;
       document.getElementById('recordsContainer').innerHTML = html;
     }
 
-    // When editing, require the editor to select their name first.
+    // Enable editing with an editor selection first
     function editRow(button) {
       const row = button.closest('tr');
       const recordId = row.getAttribute('data-record-id');
-
-      // Get current values.
       const customer = row.querySelector('.customer').innerText;
       const notes = row.querySelector('.notes').innerText;
       const requestType = row.querySelector('.requestType').innerText;
       const employee = row.querySelector('.employee').innerText;
       const timestamp = row.querySelector('.timestamp').innerText;
-
-      // Store original values for change logging.
       row.dataset.originalNotes = notes;
       row.dataset.originalRequestType = requestType;
       row.dataset.originalEmployee = employee;
 
-      // Add a mandatory "Who are you?" drop-down (editor identity).
-      let editorHTML = `<label>Who are you?</label>
+      // Build editor selection drop-down.
+      let editorHTML = `<label style="font-size:0.9rem;">Who are you?</label>
         <select id="editorSelect_${recordId}" class="editor-select">
           <option value="">Select your name</option>`;
       employeeOptions.forEach(opt => {
@@ -269,8 +297,7 @@
       });
       editorHTML += `</select>`;
 
-      // Build the editable HTML.
-      // Customer (and invoice) field with unlock code.
+      // Build editable Customer field with unlock code.
       row.querySelector('.customer').innerHTML = `
         <div>
           <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
@@ -278,28 +305,29 @@
           <br/>${editorHTML}
         </div>
       `;
-      // Notes: show original notes plus a "New Comment" textarea.
+      // Show original notes and add New Comment area (disabled until editor is selected).
       row.querySelector('.notes').innerHTML = `
         <div>
           <div style="white-space: pre-wrap;">${notes}</div>
           <textarea rows="2" placeholder="Add new comment (cannot delete original)..." id="newComment_${recordId}" class="new-comment" disabled></textarea>
         </div>
       `;
-      // Request Type drop-down.
+      // Editable Request Type drop-down (disabled until editor is chosen).
       let requestTypeSelect = `<select id="requestTypeSelect_${recordId}" disabled>`;
       requestTypeOptions.forEach(opt => {
         requestTypeSelect += `<option value="${opt}" ${opt === requestType ? 'selected' : ''}>${opt}</option>`;
       });
       requestTypeSelect += `</select>`;
       row.querySelector('.requestType').innerHTML = requestTypeSelect;
-      // Employee drop-down for record update.
-      let employeeSelect = `<select id="employeeSelect_${recordId}" disabled><option value="">Select Employee</option>`;
+      // Editable Employee drop-down (starts with a blank option).
+      let employeeSelect = `<select id="employeeSelect_${recordId}" disabled>
+          <option value="">Select Employee</option>`;
       employeeOptions.forEach(opt => {
         employeeSelect += `<option value="${opt}" ${opt === employee ? 'selected' : ''}>${opt}</option>`;
       });
       employeeSelect += `</select>`;
       row.querySelector('.employee').innerHTML = employeeSelect;
-      // Timestamp remains uneditable.
+      // Timestamp remains read-only.
       row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
 
       // Get references.
@@ -310,14 +338,13 @@
       const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
       const employeeSelectField = document.getElementById(`employeeSelect_${recordId}`);
 
-      // Initially, fields remain disabled until an editor is chosen.
+      // When editor is chosen, enable fields.
       editorSelect.addEventListener('change', function() {
         if (editorSelect.value !== "") {
-          // Enable all fields (except customerInput remains locked until proper unlock code).
           newCommentArea.disabled = false;
           requestSelect.disabled = false;
           employeeSelectField.disabled = false;
-          // Also, check if request type requires unlock.
+          // If request type requires unlock code.
           if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order") {
             unlockInput.style.display = 'block';
             unlockInput.placeholder = requestSelect.value === "Awaiting Order" ? "Enter code for Awaiting Order" : "Enter code for On Order";
@@ -327,14 +354,13 @@
             customerInput.disabled = true;
           }
         } else {
-          // If no editor selected, keep fields disabled.
           newCommentArea.disabled = true;
           requestSelect.disabled = true;
           employeeSelectField.disabled = true;
         }
       });
 
-      // When the request type changes, update the unlock code field accordingly.
+      // When request type changes, update unlock code field.
       requestSelect.addEventListener('change', function() {
         if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order") {
           unlockInput.style.display = 'block';
@@ -347,7 +373,7 @@
         }
       });
 
-      // Unlock Customer Name if the correct code is entered.
+      // Unlock Customer input if correct code entered.
       unlockInput.addEventListener('input', function() {
         if (requestSelect.value === "Awaiting Order" && unlockInput.value === "216521") {
           customerInput.disabled = false;
@@ -358,7 +384,7 @@
         }
       });
 
-      // Replace the actions with Save and Cancel buttons.
+      // Replace action buttons.
       const actionsCell = row.querySelector('td:last-child');
       actionsCell.innerHTML = `
         <button class="save-btn" onclick="saveRow(this, '${recordId}')">Save</button>
@@ -366,12 +392,12 @@
       `;
     }
 
-    // Cancel editing by reloading records.
+    // Cancel editing.
     function cancelEdit(button) {
       loadRecords();
     }
 
-    // Save the edited row via PUT.
+    // Save edited row.
     function saveRow(button, recordId) {
       const row = button.closest('tr');
       const newComment = document.getElementById(`newComment_${recordId}`).value.trim();
@@ -389,7 +415,7 @@
       }
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const updatedCustomer = customerInput.value;
-      // Get the editor's identity from the "Who are you?" select.
+      // Get editor's identity.
       const editor = document.getElementById(`editorSelect_${recordId}`).value;
       if (!editor) {
         alert("Please select who you are before saving.");
@@ -401,8 +427,6 @@
         alert("Correct unlock code is required to update the Customer Name for this Request Type.");
         return;
       }
-
-      // Build change log entries if Request Type or Employee has changed.
       const originalRequestType = row.dataset.originalRequestType;
       const originalEmployee = row.dataset.originalEmployee;
       let changeLog = "";
@@ -415,7 +439,6 @@
       if (changeLog) {
         updatedNotes += `\n\n-----\n${changeLog}`;
       }
-
       const updatedData = {
         sheet1: {
           title: updatedCustomer,
@@ -425,16 +448,13 @@
           timestamp: new Date().toISOString()
         }
       };
-
       fetch(`${apiUrl}/${recordId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData)
       })
       .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
         return response.json();
       })
       .then(json => {
