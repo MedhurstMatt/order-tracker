@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Order Tracker with Google Sheets via Sheety</title>
+  <title>Order Tracker with Sheety</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -88,6 +88,18 @@
       <input type="text" id="orderTitle" required>
       <label for="orderNotes">Notes:</label>
       <textarea id="orderNotes"></textarea>
+      <label for="orderStatus">Order Status:</label>
+      <select id="orderStatus">
+        <option value="to be ordered">to be ordered</option>
+        <option value="awaiting order">awaiting order</option>
+        <option value="on order">on order</option>
+        <option value="store pick up">store pick up</option>
+        <option value="warehouse pick up">warehouse pick up</option>
+        <option value="delivery request">delivery request</option>
+        <option value="freight forward">freight forward</option>
+        <option value="completed">completed</option>
+        <option value="canceled">canceled</option>
+      </select>
       <button type="submit">Add Order</button>
     </form>
   </div>
@@ -113,15 +125,15 @@
   </div>
 
   <script>
-    // Sheety endpoint URL for your Google Sheet
+    // Your Sheety endpoint URL
     const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1';
 
     let currentEmployee = "";
-    // Define required fields and a list of statuses
-    const statuses = ["to be ordered", "on order", "awaiting order", "store pick up", "warehouse pick up", "delivery request", "freight forward", "completed", "canceled"];
+    // List of allowed statuses in the order they run in:
+    const statuses = ["to be ordered", "awaiting order", "on order", "store pick up", "warehouse pick up", "delivery request", "freight forward", "completed", "canceled"];
     let orders = [];
 
-    // Set staff (employee) using the drop-down list
+    // Staff Login: set employee from drop-down list
     document.getElementById("setEmployeeBtn").addEventListener("click", () => {
       const employeeSelect = document.getElementById("employeeSelect");
       if (employeeSelect.value !== "") {
@@ -137,7 +149,7 @@
       document.getElementById("loggedEmployee").textContent = "Logged in as: " + (currentEmployee || "None");
     }
 
-    // On page load, restore employee from localStorage and load orders
+    // On page load, restore employee and load orders
     window.addEventListener("load", () => {
       const storedEmployee = localStorage.getItem("employeeName");
       if (storedEmployee) currentEmployee = storedEmployee;
@@ -145,12 +157,12 @@
       loadOrders();
     });
 
-    // Load orders from your Google Sheet via GET request
+    // Load orders from the Google Sheet via Sheety (GET request)
     async function loadOrders() {
       try {
         const response = await fetch(sheetyUrl);
         const data = await response.json();
-        // Assuming the orders are returned in the property "sheet1"
+        // Assuming the orders are returned in property "sheet1"
         orders = data.sheet1;
         renderOrders();
       } catch (error) {
@@ -176,7 +188,7 @@
       });
     }
 
-    // Add new order using POST request (using your provided snippet)
+    // Add new order using POST request
     document.getElementById("orderForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!currentEmployee) {
@@ -185,24 +197,25 @@
       }
       const title = document.getElementById("orderTitle").value;
       const notes = document.getElementById("orderNotes").value;
-      // Generate a unique id using the current time (serves as id)
+      // Get the selected status from the new order form
+      const selectedStatus = document.getElementById("orderStatus").value;
+      // Generate a unique id using the current time
       const id = Date.now();
       const newOrder = {
         id: id,
         title: title,
         notes: notes,
-        status: statuses[0],  // "to be ordered"
+        status: selectedStatus,
         employee: currentEmployee,
         timestamp: new Date().toISOString()
       };
       let body = { sheet1: newOrder };
-      // Use the provided POST code snippet
       fetch(sheetyUrl, {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
       })
-      .then((response) => response.json())
+      .then(response => response.json())
       .then(json => {
         console.log("Order added:", json.sheet1);
         document.getElementById("orderForm").reset();
