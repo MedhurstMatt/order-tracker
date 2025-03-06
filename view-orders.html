@@ -87,7 +87,7 @@
     tr:hover {
       background: #f1f1f1;
     }
-    /* Ensure that newlines are rendered and the notes are separated */
+    /* Ensure newlines are rendered and notes are separated */
     .notes-display {
       white-space: pre-wrap;
       font-family: 'Roboto', sans-serif;
@@ -165,7 +165,7 @@
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Base API URL (internal ID used for API calls, not displayed)
+    // Base API URL (using internal ID for API calls, not shown)
     const apiUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
 
     // Options for Request Type and Employee
@@ -201,11 +201,23 @@
 
     let allRecords = [];
 
-    // Formats the notes by splitting on the separator and joining with <hr>
+    // Function to format a timestamp into Australian style (DD/MM/YYYY hh:mm AM/PM)
+    function formatTimestamp(timestamp) {
+      const dateObj = new Date(timestamp);
+      const day = ("0" + dateObj.getDate()).slice(-2);
+      const month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
+      const year = dateObj.getFullYear();
+      let hours = dateObj.getHours();
+      const minutes = ("0" + dateObj.getMinutes()).slice(-2);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // hour '0' should be '12'
+      return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+    }
+
+    // Formats the notes into separated sections.
     function formatNotes(notes) {
-      // Split by "\n\n-----\n" (the separator used when appending logs)
       const parts = notes.split("\n\n-----\n");
-      // Wrap each part in a div and join with an <hr>
       return parts.map(part => `<div>${part.trim()}</div>`).join("<hr>");
     }
 
@@ -242,7 +254,7 @@
         });
     }
 
-    // Render table with optional filtering. The Notes cell is formatted.
+    // Render table with filtered records. Format timestamp.
     function renderTable(records) {
       const filterValue = document.getElementById('filterSelect').value;
       let filteredRecords = (filterValue === "All") ? records : records.filter(record => record.status === filterValue);
@@ -265,7 +277,7 @@
           <td class="notes notes-display">${formatNotes(record.notes)}</td>
           <td class="requestType">${record.status}</td>
           <td class="employee">${record.employee}</td>
-          <td class="timestamp">${record.timestamp}</td>
+          <td class="timestamp">${formatTimestamp(record.timestamp)}</td>
           <td>`;
         if (canEdit) {
           html += `<button class="edit-btn" onclick="editRow(this)">Edit</button>`;
@@ -278,7 +290,7 @@
       document.getElementById('recordsContainer').innerHTML = html;
     }
 
-    // --- Editing functionality with similar logic as before ---
+    // Editing functionality.
     function editRow(button) {
       const row = button.closest('tr');
       const recordId = row.getAttribute('data-record-id');
@@ -300,6 +312,7 @@
       });
       editorHTML += `</select>`;
 
+      // Build editable Customer field with unlock code.
       row.querySelector('.customer').innerHTML = `
         <div>
           <input type="text" value="${customer}" disabled id="customerInput_${recordId}" />
@@ -307,39 +320,37 @@
           <br/>${editorHTML}
         </div>
       `;
+      // Display original notes and add New Comment area.
       row.querySelector('.notes').innerHTML = `
         <div>
           <div class="notes-display">${formatNotes(notes)}</div>
           <textarea rows="2" placeholder="Add new comment (cannot delete original)..." id="newComment_${recordId}" class="new-comment" disabled></textarea>
         </div>
       `;
+      // Editable Request Type drop-down.
       let requestTypeSelect = `<select id="requestTypeSelect_${recordId}" disabled>`;
       requestTypeOptions.forEach(opt => {
         requestTypeSelect += `<option value="${opt}" ${opt === requestType ? 'selected' : ''}>${opt}</option>`;
       });
       requestTypeSelect += `</select>`;
       row.querySelector('.requestType').innerHTML = requestTypeSelect;
-      let employeeSelect = `<select id="employeeSelect_${recordId}" disabled>
-          <option value="">Select Employee</option>`;
-      employeeOptions.forEach(opt => {
-        employeeSelect += `<option value="${opt}" ${opt === employee ? 'selected' : ''}>${opt}</option>`;
-      });
-      employeeSelect += `</select>`;
-      row.querySelector('.employee').innerHTML = employeeSelect;
+      // Employee field: display as disabled text (original staff cannot be changed).
+      row.querySelector('.employee').innerHTML = `<input type="text" value="${employee}" disabled />`;
+      // Timestamp remains read-only.
       row.querySelector('.timestamp').innerHTML = `<input type="text" value="${timestamp}" disabled />`;
 
+      // Get references.
       const editorSelect = document.getElementById(`editorSelect_${recordId}`);
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const unlockInput = document.getElementById(`unlockCode_${recordId}`);
       const newCommentArea = document.getElementById(`newComment_${recordId}`);
       const requestSelect = document.getElementById(`requestTypeSelect_${recordId}`);
-      const employeeSelectField = document.getElementById(`employeeSelect_${recordId}`);
 
+      // When an editor is chosen, enable the other fields.
       editorSelect.addEventListener('change', function() {
         if (editorSelect.value !== "") {
           newCommentArea.disabled = false;
           requestSelect.disabled = false;
-          employeeSelectField.disabled = false;
           if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order" || requestSelect.value === "Moved to Delivery") {
             unlockInput.style.display = 'block';
             if (requestSelect.value === "Awaiting Order") {
@@ -357,10 +368,10 @@
         } else {
           newCommentArea.disabled = true;
           requestSelect.disabled = true;
-          employeeSelectField.disabled = true;
         }
       });
 
+      // When the request type changes, update unlock code field.
       requestSelect.addEventListener('change', function() {
         if (requestSelect.value === "Awaiting Order" || requestSelect.value === "On Order" || requestSelect.value === "Moved to Delivery") {
           unlockInput.style.display = 'block';
@@ -379,6 +390,7 @@
         }
       });
 
+      // Unlock the Customer field when correct code is entered.
       unlockInput.addEventListener('input', function() {
         if (requestSelect.value === "Awaiting Order" && unlockInput.value === "216521") {
           customerInput.disabled = false;
@@ -409,15 +421,11 @@
       let updatedNotes = originalNotes;
       if (newComment) {
         const now = new Date();
-        // Use a longer separator for visual clarity.
         updatedNotes += `\n\n--------------------------------------------------\nComment added on ${now.toLocaleString()}:\n${newComment}`;
       }
       const updatedRequestType = document.getElementById(`requestTypeSelect_${recordId}`).value;
-      const updatedEmployee = document.getElementById(`employeeSelect_${recordId}`).value;
-      if (!updatedEmployee) {
-        alert("Please select a staff member from the Employee drop-down.");
-        return;
-      }
+      // Employee remains unchanged (locked) so we retrieve it from the disabled input.
+      const updatedEmployee = row.querySelector('.employee input').value;
       const customerInput = document.getElementById(`customerInput_${recordId}`);
       const updatedCustomer = customerInput.value;
       const editor = document.getElementById(`editorSelect_${recordId}`).value;
