@@ -30,7 +30,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
     /* Navigation link in header */
-    .header a {
+    .header a.nav-link {
       position: absolute;
       right: 20px;
       top: 50%;
@@ -43,7 +43,7 @@
       border-radius: 6px;
       transition: background 0.3s ease;
     }
-    .header a:hover { background: #e07a00; }
+    .header a.nav-link:hover { background: #e07a00; }
     .container {
       background: #fff;
       width: 95%;
@@ -85,7 +85,6 @@
       resize: vertical;
       min-height: 80px;
     }
-    /* Button container for mobile friendly spacing */
     .button-container {
       margin-top: 20px;
       text-align: center;
@@ -115,13 +114,15 @@
       display: none;
       margin-bottom: 12px;
     }
-    #passcodeContainer input { border-color: #FF8C00; }
+    #passcodeContainer input {
+      border-color: #FF8C00;
+    }
   </style>
 </head>
 <body>
   <div class="header">
     Medhurst Kitchen Equipment
-    <a href="https://medhurstmatt.github.io/order-tracker/view-orders.html" target="_blank">Manage Requests</a>
+    <a href="https://medhurstmatt.github.io/order-tracker/view-orders.html" class="nav-link" target="_blank">Manage Requests</a>
   </div>
   <div class="container">
     <h2>Medhurst Request Form</h2>
@@ -136,11 +137,7 @@
         <input type="text" id="passcode" name="passcode" placeholder="Enter passcode">
       </div>
       
-      <!-- Notes -->
-      <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" placeholder="Enter notes here..." required></textarea>
-      
-      <!-- Request Type -->
+      <!-- Request Type positioned above Notes -->
       <label for="status">Request Type</label>
       <select id="status" name="status" required>
         <option value="To Be Ordered">To Be Ordered</option>
@@ -156,6 +153,10 @@
         <option value="Completed">Completed</option>
         <option value="Canceled">Canceled</option>
       </select>
+      
+      <!-- Notes placed after Request Type -->
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" placeholder="Enter notes here..." required></textarea>
       
       <!-- Employee -->
       <label for="employee">Employee</label>
@@ -176,7 +177,7 @@
         <option value="Toby McShane">Toby McShane</option>
       </select>
       
-      <!-- Button container for mobile-friendly layout -->
+      <!-- Button container for mobile-friendly submit -->
       <div class="button-container">
         <input type="submit" value="Submit Request">
       </div>
@@ -202,9 +203,10 @@
         titleInput.disabled = false;
       }
     }
+
     statusSelect.addEventListener('change', checkPasscodeRequirement);
 
-    // When passcode is entered, enable the title if correct.
+    // When passcode is entered, enable the title if the code is correct.
     passcodeInput.addEventListener('input', function() {
       const rt = statusSelect.value;
       const code = passcodeInput.value;
@@ -217,7 +219,6 @@
       }
     });
 
-    // Form submission.
     document.getElementById('requestForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const rt = statusSelect.value;
