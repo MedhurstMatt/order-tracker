@@ -2,92 +2,65 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Order Tracker with Supabase and Staff Login</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <title>Order Tracker (Google Sheets via Sheety)</title>
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
+      font-family: Arial, sans-serif;
       background: #f7f7f7;
-      margin: 0;
       padding: 20px;
+      margin: 0;
       color: #333;
     }
     h1, h2 {
       color: #2c3e50;
-      margin-bottom: 10px;
     }
-    hr {
-      border: 0;
-      height: 1px;
-      background: #ddd;
-      margin: 20px 0;
-    }
-    input[type="text"], textarea, select { 
-      width: 100%;
-      padding: 8px;
-      margin: 6px 0 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box; 
-    }
-    button {
-      padding: 8px 16px;
-      margin: 4px 2px;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s ease;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
-    .btn-group button {
-      margin-right: 5px;
-    }
-    .employee-login, .new-order, .filter-section, .orders-section {
-      background: white;
+    .section {
+      background: #fff;
       padding: 15px;
       border-radius: 8px;
       margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    input, textarea, select, button {
+      padding: 8px;
+      margin: 5px 0;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #2980b9;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-top: 20px;
     }
     th, td {
-      border: 1px solid #e0e0e0;
-      padding: 10px;
+      border: 1px solid #ccc;
+      padding: 8px;
       text-align: left;
     }
     th {
-      background-color: #f2f2f2;
+      background: #eee;
     }
   </style>
-  <!-- Include Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // Initialize Supabase with your credentials
-    const supabaseUrl = "https://mkuxuegawofzedmxhxhu.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdXh1ZWdhd29memVkbXhoeGh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzc2NjQsImV4cCI6MjA1NjgxMzY2NH0.MsnFEpPYJrD5-BO7W0csjwPog5heW4hH5Dz7ts2rKr4";
-    const supabase = createClient(supabaseUrl, supabaseKey);
-  </script>
 </head>
 <body>
   <h1>Order Tracker</h1>
 
-  <!-- Employee Login Section with Staff List -->
-  <div class="employee-login">
-    <h2>Employee Login</h2>
-    <select id="employeeNameSelect">
+  <!-- Staff Login Section -->
+  <div class="section">
+    <h2>Staff Login</h2>
+    <select id="employeeSelect">
       <option value="">Select Employee</option>
       <option value="Allan Bakker">Allan Bakker</option>
       <option value="Anne McShane">Anne McShane</option>
@@ -106,25 +79,22 @@
     <button id="setEmployeeBtn">Set Employee</button>
     <p id="loggedEmployee"></p>
   </div>
-  <hr>
 
   <!-- New Order Form -->
-  <div class="new-order">
+  <div class="section">
     <h2>Add New Order</h2>
     <form id="orderForm">
-      <label for="title">Order Title:</label>
-      <input type="text" id="title" required>
-      <label for="notes">Notes:</label>
-      <textarea id="notes"></textarea>
+      <label for="orderTitle">Order Title:</label>
+      <input type="text" id="orderTitle" required>
+      <label for="orderNotes">Notes:</label>
+      <textarea id="orderNotes"></textarea>
       <button type="submit">Add Order</button>
     </form>
   </div>
-  <hr>
 
   <!-- Filter Section -->
-  <div class="filter-section">
+  <div class="section">
     <h2>Filter Orders</h2>
-    <label for="filterStatus">Filter by Status:</label>
     <select id="filterStatus">
       <option value="all">All</option>
       <option value="to be ordered">to be ordered</option>
@@ -138,10 +108,9 @@
       <option value="canceled">canceled</option>
     </select>
   </div>
-  <hr>
 
   <!-- Orders Table -->
-  <div class="orders-section">
+  <div class="section">
     <h2>Current Orders</h2>
     <table id="ordersTable">
       <thead>
@@ -161,40 +130,54 @@
   </div>
 
   <script>
-    /*************** Employee Login Code ***************/
+    // Your Sheety endpoint (Google Sheet)
+    const sheetyUrl = "https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1";
     let currentEmployee = "";
-    function setEmployee() {
-      const employeeSelect = document.getElementById("employeeNameSelect");
-      const selectedEmployee = employeeSelect.value;
-      if (selectedEmployee !== "") {
-        currentEmployee = selectedEmployee;
+    // The fields to record:
+    // id, title, notes, status, employee, timestamp
+    const statuses = ["to be ordered", "on order", "awaiting order", "store pick up", "warehouse pick up", "delivery request", "freight forward", "completed", "canceled"];
+    let orders = [];
+
+    // Set staff from the drop‑down list
+    document.getElementById("setEmployeeBtn").addEventListener("click", () => {
+      const employeeSelect = document.getElementById("employeeSelect");
+      if (employeeSelect.value !== "") {
+        currentEmployee = employeeSelect.value;
         localStorage.setItem("employeeName", currentEmployee);
         updateEmployeeDisplay();
       } else {
-        alert("Please select a valid employee.");
+        alert("Please select an employee.");
       }
-    }
+    });
+
     function updateEmployeeDisplay() {
       document.getElementById("loggedEmployee").textContent = "Logged in as: " + (currentEmployee || "None");
     }
-    document.getElementById("setEmployeeBtn").addEventListener("click", setEmployee);
 
-    /*************** Order Tracker Code Using Supabase ***************/
-    const statuses = [
-      "to be ordered",
-      "on order",
-      "awaiting order",
-      "store pick up",
-      "warehouse pick up",
-      "delivery request",
-      "freight forward",
-      "completed",
-      "canceled"
-    ];
+    // On page load, restore employee from localStorage and load orders
+    window.addEventListener("load", () => {
+      const storedEmployee = localStorage.getItem("employeeName");
+      if (storedEmployee) {
+        currentEmployee = storedEmployee;
+      }
+      updateEmployeeDisplay();
+      loadOrders();
+    });
 
-    let orders = [];
+    // Load orders from Sheety
+    async function loadOrders() {
+      try {
+        const response = await fetch(sheetyUrl);
+        const data = await response.json();
+        // Sheety returns an object with property "sheet1" (your sheet name)
+        orders = data.sheet1;
+        renderOrders();
+      } catch (error) {
+        console.error("Error loading orders:", error);
+      }
+    }
 
-    // Render orders from Supabase data
+    // Render orders in the table
     function renderOrders() {
       const filter = document.getElementById("filterStatus").value;
       const tbody = document.getElementById("ordersTable").querySelector("tbody");
@@ -207,14 +190,14 @@
           <td>${order.id}</td>
           <td>${order.title}</td>
           <td>
-            <textarea onchange="updateNotes(${order.id}, this.value)" ${isEditable ? "" : "disabled"}>${order.notes || ""}</textarea>
+            <textarea onchange="updateOrderField(${order.id}, 'notes', this.value)" ${isEditable ? "" : "disabled"}>${order.notes || ""}</textarea>
           </td>
           <td>
-            <select onchange="updateStatus(${order.id}, this.value)" ${isEditable ? "" : "disabled"}>
-              ${statuses.filter(s => s !== "canceled").map(status => `<option value="${status}" ${order.status === status ? "selected" : ""}>${status}</option>`).join("")}
+            <select onchange="updateOrderField(${order.id}, 'status', this.value)" ${isEditable ? "" : "disabled"}>
+              ${statuses.filter(s => s !== "canceled").map(s => `<option value="${s}" ${order.status === s ? "selected" : ""}>${s}</option>`).join("")}
             </select>
           </td>
-          <td>${order.employee || "N/A"}</td>
+          <td>${order.employee || ""}</td>
           <td>
             ${isEditable ? `<button onclick="advanceStatus(${order.id})">Next Step</button>
             <button onclick="cancelOrder(${order.id})">Cancel</button>` : ""}
@@ -225,50 +208,50 @@
       });
     }
 
-    // Load orders from Supabase
-    async function loadOrders() {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .order("timestamp", { ascending: false });
-      if (error) {
-        console.error("Error loading orders:", error);
-      } else {
-        orders = data;
-        renderOrders();
+    // Add new order on form submission
+    document.getElementById("orderForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentEmployee) {
+        alert("Please set your employee from the list first.");
+        return;
       }
-    }
-
-    // Add a new order to Supabase
-    async function addOrder(order) {
-      const { data, error } = await supabase
-        .from("orders")
-        .insert(order);
-      if (error) {
-        console.error("Error adding order:", error);
-      } else {
+      const title = document.getElementById("orderTitle").value;
+      const notes = document.getElementById("orderNotes").value;
+      const newOrder = {
+        title: title,
+        notes: notes,
+        status: statuses[0],
+        employee: currentEmployee,
+        timestamp: new Date().toISOString()
+      };
+      try {
+        await fetch(sheetyUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // The payload key must match your sheet name (here, "sheet1")
+          body: JSON.stringify({ sheet1: newOrder })
+        });
+        document.getElementById("orderForm").reset();
         loadOrders();
+      } catch (error) {
+        console.error("Error adding order:", error);
       }
-    }
+    });
 
-    // Update order notes in Supabase
-    async function updateNotes(id, newNotes) {
-      const { error } = await supabase
-        .from("orders")
-        .update({ notes: newNotes })
-        .eq("id", id);
-      if (error) console.error("Error updating notes:", error);
-      else loadOrders();
-    }
-
-    // Update order status in Supabase
-    async function updateStatus(id, newStatus) {
-      const { error } = await supabase
-        .from("orders")
-        .update({ status: newStatus })
-        .eq("id", id);
-      if (error) console.error("Error updating status:", error);
-      else loadOrders();
+    // Update order field (notes or status) via a PUT request
+    async function updateOrderField(id, field, value) {
+      const updateObj = {};
+      updateObj[field] = value;
+      try {
+        await fetch(`${sheetyUrl}/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sheet1: updateObj })
+        });
+        loadOrders();
+      } catch (error) {
+        console.error("Error updating order:", error);
+      }
     }
 
     // Advance order status to the next step
@@ -277,23 +260,13 @@
       if (!order) return;
       const currentIndex = statuses.indexOf(order.status);
       if (currentIndex >= 0 && currentIndex < statuses.indexOf("completed")) {
-        const { error } = await supabase
-          .from("orders")
-          .update({ status: statuses[currentIndex + 1] })
-          .eq("id", id);
-        if (error) console.error("Error advancing status:", error);
-        else loadOrders();
+        await updateOrderField(id, "status", statuses[currentIndex + 1]);
       }
     }
 
-    // Cancel an order by setting its status to "canceled"
+    // Cancel an order (set status to "canceled")
     async function cancelOrder(id) {
-      const { error } = await supabase
-        .from("orders")
-        .update({ status: "canceled" })
-        .eq("id", id);
-      if (error) console.error("Error canceling order:", error);
-      else loadOrders();
+      await updateOrderField(id, "status", "canceled");
     }
 
     // Delete order with password protection (password: 216521)
@@ -305,44 +278,17 @@
         return;
       }
       if (confirm("Are you sure you want to permanently delete this order?")) {
-        const { error } = await supabase
-          .from("orders")
-          .delete()
-          .eq("id", id);
-        if (error) console.error("Error deleting order:", error);
-        else loadOrders();
+        try {
+          await fetch(`${sheetyUrl}/${id}`, { method: "DELETE" });
+          loadOrders();
+        } catch (error) {
+          console.error("Error deleting order:", error);
+        }
       }
     }
 
-    // Add new order on form submit
-    document.getElementById("orderForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      if (!currentEmployee) {
-        alert("Please set your employee from the list.");
-        return;
-      }
-      const title = document.getElementById("title").value;
-      const notes = document.getElementById("notes").value;
-      const order = {
-        title: title,
-        notes: notes,
-        status: statuses[0],  // "to be ordered"
-        employee: currentEmployee,
-        timestamp: new Date().toISOString()
-      };
-      addOrder(order);
-      this.reset();
-    });
-
+    // Re-render orders when the filter changes
     document.getElementById("filterStatus").addEventListener("change", renderOrders);
-
-    // On page load, restore employee from localStorage and load orders
-    window.addEventListener("load", function() {
-      const storedEmployee = localStorage.getItem("employeeName");
-      if (storedEmployee) currentEmployee = storedEmployee;
-      updateEmployeeDisplay();
-      loadOrders();
-    });
   </script>
 </body>
 </html>
