@@ -107,22 +107,21 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Rows will be inserted here -->
+        <!-- Orders will be inserted here -->
       </tbody>
     </table>
   </div>
 
   <script>
-    // Sheety endpoint URL
+    // Sheety endpoint URL for your Google Sheet
     const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsUntitledSpreadsheet/sheet1';
 
-    // Global variables
     let currentEmployee = "";
-    // List of statuses (you can add more if needed)
+    // Define required fields and a list of statuses
     const statuses = ["to be ordered", "on order", "awaiting order", "store pick up", "warehouse pick up", "delivery request", "freight forward", "completed", "canceled"];
     let orders = [];
 
-    // Staff Login
+    // Set staff (employee) using the drop-down list
     document.getElementById("setEmployeeBtn").addEventListener("click", () => {
       const employeeSelect = document.getElementById("employeeSelect");
       if (employeeSelect.value !== "") {
@@ -138,22 +137,20 @@
       document.getElementById("loggedEmployee").textContent = "Logged in as: " + (currentEmployee || "None");
     }
 
-    // On page load, restore employee and load orders
+    // On page load, restore employee from localStorage and load orders
     window.addEventListener("load", () => {
       const storedEmployee = localStorage.getItem("employeeName");
-      if (storedEmployee) {
-        currentEmployee = storedEmployee;
-      }
+      if (storedEmployee) currentEmployee = storedEmployee;
       updateEmployeeDisplay();
       loadOrders();
     });
 
-    // Load orders from the Google Sheet via Sheety (GET request)
+    // Load orders from your Google Sheet via GET request
     async function loadOrders() {
       try {
         const response = await fetch(sheetyUrl);
         const data = await response.json();
-        // Adjust this if your returned property name is different; here we assume "sheet1" contains the rows.
+        // Assuming the orders are returned in the property "sheet1"
         orders = data.sheet1;
         renderOrders();
       } catch (error) {
@@ -161,7 +158,7 @@
       }
     }
 
-    // Render orders in a table
+    // Render orders in the table
     function renderOrders() {
       const tbody = document.getElementById("ordersTable").querySelector("tbody");
       tbody.innerHTML = "";
@@ -179,7 +176,7 @@
       });
     }
 
-    // Add new order (POST)
+    // Add new order using POST request (using your provided snippet)
     document.getElementById("orderForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!currentEmployee) {
@@ -188,29 +185,30 @@
       }
       const title = document.getElementById("orderTitle").value;
       const notes = document.getElementById("orderNotes").value;
-      // Generate a unique id using current time (this serves as the id)
+      // Generate a unique id using the current time (serves as id)
       const id = Date.now();
-      // Hardcode status as "to be ordered" and timestamp as current time
       const newOrder = {
         id: id,
         title: title,
         notes: notes,
-        status: statuses[0],
+        status: statuses[0],  // "to be ordered"
         employee: currentEmployee,
         timestamp: new Date().toISOString()
       };
-      const body = { sheet1: newOrder };
-      try {
-        await fetch(sheetyUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
+      let body = { sheet1: newOrder };
+      // Use the provided POST code snippet
+      fetch(sheetyUrl, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+      .then((response) => response.json())
+      .then(json => {
+        console.log("Order added:", json.sheet1);
         document.getElementById("orderForm").reset();
         loadOrders();
-      } catch (error) {
-        console.error("Error adding order:", error);
-      }
+      })
+      .catch(error => console.error("Error adding order:", error));
     });
   </script>
 </body>
