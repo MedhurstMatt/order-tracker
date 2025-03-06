@@ -2,78 +2,124 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sheety POST Test - News Sheet</title>
+  <title>Order Submission</title>
   <style>
     body {
+      background-color: orange;
+      color: black;
       font-family: Arial, sans-serif;
-      background-color: #FFF;   /* White background */
-      color: #000;              /* Black text */
-      margin: 20px;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background-color: white;
+      max-width: 500px;
+      margin: 50px auto;
       padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    #statusMessage {
-      margin-top: 20px;
+    h2 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin: 10px 0 4px;
+    }
+    input[type="text"],
+    textarea {
+      width: 100%;
       padding: 10px;
-      border: 2px solid #FFA500; /* Solid orange border */
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
       border-radius: 4px;
-      background-color: #FFF;
-      color: #000;
+      box-sizing: border-box;
     }
-    button {
-      padding: 10px 20px;
-      background-color: #FFA500; /* Orange button */
+    input[type="submit"] {
+      background-color: black;
+      color: white;
       border: none;
+      padding: 12px;
+      width: 100%;
       border-radius: 4px;
-      color: #000;
+      font-size: 16px;
       cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s ease;
+      transition: background-color 0.3s ease;
     }
-    button:hover {
-      background-color: #e69500;
+    input[type="submit"]:hover {
+      background-color: #333;
+    }
+    #responseMessage {
+      margin-top: 20px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>Sheety POST Test - News Sheet</h1>
-  <button onclick="testSheetyPost()">Test Sheety POST</button>
-  <div id="statusMessage">Click the button to add a record to Sheety.</div>
+  <div class="container">
+    <h2>Submit Order</h2>
+    <form id="orderForm">
+      <label for="id">ID</label>
+      <input type="text" id="id" name="id" required>
+      
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" required>
+      
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="3" required></textarea>
+      
+      <label for="status">Status</label>
+      <input type="text" id="status" name="status" required>
+      
+      <label for="employee">Employee</label>
+      <input type="text" id="employee" name="employee" required>
+      
+      <label for="timestamp">Timestamp</label>
+      <input type="text" id="timestamp" name="timestamp" required>
+      
+      <input type="submit" value="Submit Order">
+    </form>
+    <div id="responseMessage"></div>
+  </div>
 
   <script>
-    // Your updated Sheety endpoint URL
-    const sheetyUrl = 'https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1';
-
-    function testSheetyPost() {
-      document.getElementById("statusMessage").textContent = "Sending data to Sheety...";
-
-      // Create a sample record with a unique id and current timestamp
-      const sampleRecord = {
-        id: Date.now(),  // Unique id from the current time
-        title: "Sample News Order",
-        notes: "This is a sample record added via POST to the News sheet.",
-        status: "to be ordered",
-        employee: "Test Employee",
-        timestamp: new Date().toISOString()
+    document.getElementById('orderForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Create the data object. The structure here assumes Sheety expects the key
+      // to match the sheet name (in this case "sheet1")
+      const orderData = {
+        sheet1: {
+          id: document.getElementById('id').value,
+          title: document.getElementById('title').value,
+          notes: document.getElementById('notes').value,
+          status: document.getElementById('status').value,
+          employee: document.getElementById('employee').value,
+          timestamp: document.getElementById('timestamp').value
+        }
       };
 
-      // Build the POST payload
-      const body = { sheet1: sampleRecord };
-
-      fetch(sheetyUrl, {
+      fetch('https://api.sheety.co/f62c95e8eb701c43124c76ee34a0ba0c/mattsNewsUntitledSpreadsheet/sheet1', {
         method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
       })
-      .then(response => response.json())
-      .then(json => {
-        console.log("POST response:", json);
-        document.getElementById("statusMessage").textContent = "Record added successfully!";
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then(data => {
+        document.getElementById('responseMessage').innerText = 'Order submitted successfully!';
+        document.getElementById('orderForm').reset();
       })
       .catch(error => {
-        console.error("Error during POST:", error);
-        document.getElementById("statusMessage").textContent = "Error adding record.";
+        document.getElementById('responseMessage').innerText = 'Error: ' + error.message;
       });
-    }
+    });
   </script>
 </body>
 </html>
