@@ -1,0 +1,13 @@
+branch: "main"  # The branch to commit submissions
+commitMessage: "New order submission: {{fields.title}}"
+pullRequestTitle: "New order submission: {{fields.title}}"
+pullRequestBody: "A new order submission was received with the following details:\n\n{{fields}}"
+path: "data/submissions/{{slug}}.json"  # The folder and file naming scheme for submissions
+generatedFields:
+  timestamp: !!js "new Date().toISOString()"
+acceptedFields:
+  - title
+  - notes
+  - status
+  - employee
+  - timestamp
