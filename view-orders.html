@@ -43,9 +43,7 @@
       border-radius: 4px;
       transition: background 0.3s ease;
     }
-    .header a.nav-link:hover {
-      background: rgba(224, 122, 0, 0.9);
-    }
+    .header a.nav-link:hover { background: rgba(224, 122, 0, 0.9); }
     .container {
       background: #fff;
       width: 95%;
@@ -101,7 +99,6 @@
       font-size: 0.9rem;
       overflow: hidden;
       max-height: 80px;
-      position: relative;
       transition: max-height 0.3s ease;
     }
     .notes-display.expanded { max-height: none; }
@@ -393,9 +390,9 @@
       let updatedNotes = "";
       if (newComment) {
         const now = new Date();
-        const newNoteBlock = `--------------------------------------------------\nComment added on ${now.toLocaleString()}:\n${newComment}`;
-        // Insert new comment at the top.
-        updatedNotes = newNoteBlock + "\n\n" + originalNotes;
+        // Insert new comment block at the top with separator below the comment.
+        const newNoteBlock = `Comment added on ${now.toLocaleString()}:\n${newComment}\n--------------------------------------------------\n`;
+        updatedNotes = newNoteBlock + originalNotes;
       } else {
         updatedNotes = originalNotes;
       }
