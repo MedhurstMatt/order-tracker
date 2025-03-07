@@ -1,8 +1,9 @@
-branch: "main"  # The branch to commit submissions
+branch: "main"  # Use the main branch
 commitMessage: "New order submission: {{fields.title}}"
 pullRequestTitle: "New order submission: {{fields.title}}"
 pullRequestBody: "A new order submission was received with the following details:\n\n{{fields}}"
-path: "data/submissions/{{slug}}.json"  # The folder and file naming scheme for submissions
+# Save files in the root of the main branch as JSON files
+path: "{{slug}}.json"
 generatedFields:
   timestamp: !!js "new Date().toISOString()"
 acceptedFields:
