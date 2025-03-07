@@ -7,7 +7,7 @@
   <!-- Google Fonts for modern typography -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* Reset and base styles */
+    /* Basic reset and styling */
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -17,133 +17,68 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-    }
-    .header {
-      background: #222;
-      color: #fff;
       padding: 20px;
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 500;
-      letter-spacing: 1px;
-      position: relative;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    /* Unobtrusive navigation link in top-right */
-    .header a.nav-link {
-      position: absolute;
-      right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #fff;
-      text-decoration: none;
-      font-size: 0.9rem;
-      background: rgba(255, 140, 0, 0.8);
-      padding: 6px 10px;
-      border-radius: 4px;
-      transition: background 0.3s ease;
-    }
-    .header a.nav-link:hover { background: rgba(224, 122, 0, 0.9); }
     .container {
       background: #fff;
-      width: 95%;
       max-width: 600px;
-      margin: 20px auto;
-      padding: 20px 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 1.75rem;
-      color: #222;
-    }
-    label {
-      display: block;
-      margin: 10px 0 4px;
-      font-weight: 500;
-    }
-    input[type="text"],
-    textarea,
-    select {
+    h2 { text-align: center; }
+    label { display: block; margin-top: 15px; }
+    input[type="text"], textarea, select {
       width: 100%;
       padding: 10px;
-      margin-bottom: 12px;
+      margin-top: 5px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 4px;
       font-size: 1rem;
-      transition: border 0.3s ease;
-    }
-    input[type="text"]:focus,
-    textarea:focus,
-    select:focus {
-      border-color: #FF8C00;
-      outline: none;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    /* Button container for mobile-friendly spacing */
-    .button-container {
-      margin-top: 20px;
-      text-align: center;
     }
     input[type="submit"] {
-      background: #222;
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background: #333;
       color: #fff;
       border: none;
-      padding: 14px;
-      width: 100%;
-      border-radius: 6px;
+      border-radius: 4px;
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s ease;
     }
-    input[type="submit"]:hover { background: #444; }
+    input[type="submit"]:hover { background: #555; }
     .footer {
-      background: #222;
-      color: #fff;
       text-align: center;
-      padding: 12px 0;
+      margin-top: 20px;
       font-size: 0.85rem;
-      margin-top: auto;
-    }
-    /* Passcode container styling */
-    #passcodeContainer {
-      display: none;
-      margin-bottom: 12px;
-    }
-    #passcodeContainer input {
-      border-color: #FF8C00;
+      color: #222;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    Medhurst Kitchen Equipment
-    <!-- Link to Manage Requests page -->
-    <a href="https://medhurstmatt.github.io/order-tracker/view-orders.html" class="nav-link" target="_blank">Manage Requests</a>
-  </div>
   <div class="container">
     <h2>Medhurst Request Form</h2>
-    <form id="requestForm" action="https://api.staticman.net/v2/entry/medhurstmatt/order-tracker/main" method="POST">
-      <!-- Required hidden fields for Staticman -->
-      <input type="hidden" name="options[redirect]" value="https://medhurstmatt.github.io/order-tracker/thank-you.html">
+    <form id="requestForm" action="https://api.staticman.net/v2/entry/yourusername/order-tracker/main" method="POST">
+      <!-- Hidden fields required by Staticman -->
+      <input type="hidden" name="options[redirect]" value="https://yourusername.github.io/order-tracker/thank-you.html">
       <input type="hidden" name="options[slug]" value="order-{{timestamp}}">
       
-      <!-- Customer Name and Invoice -->
-      <label for="title">Customer Name and Invoice</label>
-      <input type="text" id="title" name="fields[title]" placeholder="Enter customer name and invoice" required>
+      <!-- Field 1: Invoice Number -->
+      <label for="id">Invoice Number</label>
+      <input type="text" id="id" name="fields[id]" placeholder="Enter invoice number" required>
       
-      <!-- Passcode container (hidden by default) -->
-      <div id="passcodeContainer">
-        <label for="passcode">Passcode</label>
-        <input type="text" id="passcode" name="fields[passcode]" placeholder="Enter passcode">
-      </div>
+      <!-- Field 2: Customer Name -->
+      <label for="title">Customer Name</label>
+      <input type="text" id="title" name="fields[title]" placeholder="Enter customer name" required>
       
-      <!-- Request Type positioned above Notes -->
+      <!-- Field 3: Notes -->
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="fields[notes]" placeholder="Enter notes here..." required></textarea>
+      
+      <!-- Field 4: Request Type -->
       <label for="status">Request Type</label>
       <select id="status" name="fields[status]" required>
         <option value="To Be Ordered">To Be Ordered</option>
@@ -160,11 +95,7 @@
         <option value="Canceled">Canceled</option>
       </select>
       
-      <!-- Notes placed after Request Type -->
-      <label for="notes">Notes</label>
-      <textarea id="notes" name="fields[notes]" placeholder="Enter notes here..." required></textarea>
-      
-      <!-- Employee -->
+      <!-- Field 5: Employee -->
       <label for="employee">Employee</label>
       <select id="employee" name="fields[employee]" required>
         <option value="">Select Employee</option>
@@ -183,45 +114,18 @@
         <option value="Toby McShane">Toby McShane</option>
       </select>
       
-      <!-- Button container for mobile-friendly submit -->
-      <div class="button-container">
-        <input type="submit" value="Submit Request">
-      </div>
+      <!-- Field 6: Timestamp (hidden; if desired, you can let Staticman generate it) -->
+      <input type="hidden" id="timestamp" name="fields[timestamp]" value="">
+      
+      <!-- Submit Button -->
+      <input type="submit" value="Submit Request">
     </form>
   </div>
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // JavaScript to handle passcode requirements
-    const statusSelect = document.getElementById('status');
-    const passcodeContainer = document.getElementById('passcodeContainer');
-    const titleInput = document.getElementById('title');
-    const passcodeInput = document.getElementById('passcode');
-
-    function checkPasscodeRequirement() {
-      const rt = statusSelect.value;
-      if (rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") {
-        passcodeContainer.style.display = 'block';
-        titleInput.disabled = true;
-      } else {
-        passcodeContainer.style.display = 'none';
-        passcodeInput.value = "";
-        titleInput.disabled = false;
-      }
-    }
-    statusSelect.addEventListener('change', checkPasscodeRequirement);
-
-    passcodeInput.addEventListener('input', function() {
-      const rt = statusSelect.value;
-      const code = passcodeInput.value;
-      if ((rt === "Awaiting Order" && code === "216521") ||
-          (rt === "On Order" && code === "191221") ||
-          (rt === "Moved to Delivery" && code === "201896")) {
-        titleInput.disabled = false;
-      } else {
-        titleInput.disabled = true;
-      }
-    });
+    // Set the timestamp to current time when the form loads
+    document.getElementById("timestamp").value = new Date().toISOString();
   </script>
 </body>
 </html>
