@@ -128,17 +128,7 @@
   </div>
   <div class="container">
     <h2>Medhurst Request Form</h2>
-    <!-- 
-      Staticman form integration.
-      Replace <GITHUB_USERNAME>, <REPO>, <BRANCH>, and <PATH> accordingly.
-      In this example:
-      - GitHub Username: medhurstmatt
-      - Repository: order-tracker
-      - Branch: main
-      - Submissions stored in: data/submissions
-    -->
-    <form id="requestForm" action="https://api.staticman.net/v2/entry/medhurstmatt/order-tracker/main/data/submissions" method="POST">
-      
+    <form id="requestForm" action="https://api.staticman.net/v2/entry/medhurstmatt/order-tracker/main" method="POST">
       <!-- Required hidden fields for Staticman -->
       <input type="hidden" name="options[redirect]" value="https://medhurstmatt.github.io/order-tracker/thank-you.html">
       <input type="hidden" name="options[slug]" value="order-{{timestamp}}">
@@ -202,13 +192,12 @@
   <div class="footer">© 2024 Medhurst Kitchen Equipment</div>
 
   <script>
-    // Get references to elements for passcode functionality
+    // JavaScript to handle passcode requirements
     const statusSelect = document.getElementById('status');
     const passcodeContainer = document.getElementById('passcodeContainer');
     const titleInput = document.getElementById('title');
     const passcodeInput = document.getElementById('passcode');
 
-    // Check if the current request type requires a passcode.
     function checkPasscodeRequirement() {
       const rt = statusSelect.value;
       if (rt === "Awaiting Order" || rt === "On Order" || rt === "Moved to Delivery") {
@@ -220,10 +209,8 @@
         titleInput.disabled = false;
       }
     }
-
     statusSelect.addEventListener('change', checkPasscodeRequirement);
 
-    // When passcode is entered, enable the Customer Name and Invoice field if correct.
     passcodeInput.addEventListener('input', function() {
       const rt = statusSelect.value;
       const code = passcodeInput.value;
