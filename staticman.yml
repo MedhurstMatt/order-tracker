@@ -1,8 +1,7 @@
-branch: "main"  # Use the main branch
+branch: "main"
 commitMessage: "New order submission: {{fields.title}}"
 pullRequestTitle: "New order submission: {{fields.title}}"
-pullRequestBody: "A new order submission was received with the following details:\n\n{{fields}}"
-# Save files in the root of the main branch as JSON files
+pullRequestBody: "A new order submission was received:\n\n{{fields}}"
 path: "{{slug}}.json"
 generatedFields:
   timestamp: !!js "new Date().toISOString()"
