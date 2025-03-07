@@ -6,6 +6,7 @@ path: "{{slug}}.json"
 generatedFields:
   timestamp: !!js "new Date().toISOString()"
 acceptedFields:
+  - id
   - title
   - notes
   - status
